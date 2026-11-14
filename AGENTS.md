@@ -14,6 +14,7 @@ Build a speaking coach for natural Guangzhou Cantonese and everyday mainland Man
 ## Where things live
 
 - [Public GitHub repository](https://github.com/tinahe-nyc/canto-colloquial-translator) · [CI](https://github.com/tinahe-nyc/canto-colloquial-translator/actions)
+- [Production app](https://canto-colloquial-translator.vercel.app) · [Vercel project](https://vercel.com/tinahe-nyc/canto-colloquial-translator) · [tested mobile feature preview](https://canto-colloquial-translator-o17rg11l1-tinahe-nyc.vercel.app). Production and preview were deployed from explicit GitHub references. Automatic deployment on push requires the repository to be connected in Vercel's Git settings.
 - [Neon project](https://console.neon.tech/app/projects/icy-night-53681871) · [production tables](https://console.neon.tech/app/projects/icy-night-53681871/branches/br-floral-tooth-bcljl06d/tables). Directly provisioned in AWS US East (N. Virginia). This setup uses one database for development, preview and production; do not use real personal phrases as test data.
 
 ## Development and release
