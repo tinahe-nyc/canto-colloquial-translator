@@ -58,7 +58,7 @@
     .member-tools {display:flex;align-items:center;gap:8px}.member-tools .plain {font-size:13px;white-space:nowrap}
     .tab,.round,.secondary,.primary,.sample,.listen,.word,.plain {border:1.5px solid var(--line);border-radius:8px 10px 7px 10px;background:var(--card);color:var(--ink)}
     .tab,.secondary,.primary,.listen,.sample,.plain {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px}
-    .tab {padding:6px 13px;border-color:transparent;background:none;font-weight:800;font-size:14px}
+    .tab {padding:6px 13px;border-color:transparent;background:none;font-weight:800;font-size:14px;white-space:nowrap}
     .tab[aria-current=page] {background:var(--mint);border-color:var(--line);transform:rotate(-1deg)}
     .round {width:41px;height:41px;border-radius:50% 46% 49% 46%;display:inline-grid;place-items:center}
     .theme-icon-sun, [data-theme=dark] .theme-icon-moon {display:none}
@@ -175,7 +175,8 @@
       .result-grid.dual {grid-template-columns:1fr}.result-card {padding:19px 15px}.results h2 {font-size:32px}
       .site-foot {margin-top:26px}.choice span {padding-inline:12px}
     }
-    @media(max-width:365px){.tab .icon {display:none}.saved-note {font-size:12px}.hero .sprig {display:none}}
+    @media(max-width:430px){.tab .icon {display:none}.tab {font-size:13px;padding-inline:3px}}
+    @media(max-width:365px){.saved-note {font-size:12px}.hero .sprig {display:none}}
     @media(prefers-reduced-motion: reduce){* {scroll-behavior:auto!important;transition:none!important;animation:none!important}}
   </style>
 </head>
@@ -275,7 +276,7 @@
               <textarea id="english" rows="3" maxlength="500" required placeholder="Have you eaten yet?">Have you eaten yet?</textarea>
               <button id="mic" class="mic" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg><span>Dictate</span></button></div>
               <p id="mic-status" class="feedback" role="status"></p></div>
-            <div class="form-settings"><div><label class="field-label" for="listener">Who’s listening?</label><select id="listener">
+            <div class="form-settings" id="custom-settings" hidden><div><label class="field-label" for="listener">Who’s listening?</label><select id="listener">
               <option value="parents">My parents</option><option value="family">Family</option><option value="friends">Friends</option><option value="partner">My partner</option><option value="coworker">A coworker</option><option value="shop">Shop or restaurant</option><option value="stranger">Someone new</option>
             </select></div>
             <fieldset><legend>How should it sound?</legend><div class="chipset">
@@ -356,6 +357,7 @@
       sessionVersion++;
       translationRun++;
       byId('friend-login').hidden=false;
+      byId('custom-settings').hidden=true;
       byId('coach-intro').textContent='Practice a starter phrase in everyday Cantonese or Mandarin.';
       openGate();
     }
@@ -388,6 +390,7 @@
       signedIn = !!info.authenticated;
       providerReady = !!info.providerReady;
       byId('friend-login').hidden = signedIn;
+      byId('custom-settings').hidden=!(signedIn && providerReady);
       gateOpen=false;
       gate.hidden=true;
       byId('navigation').hidden = false;
