@@ -1,0 +1,23 @@
+{
+  "name": "canto-colloquial-translator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env.local scripts/dev.mjs",
+    "start": "node --env-file-if-exists=.env.local scripts/dev.mjs --production",
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "db:migrate": "node --env-file=.env.local scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0",
+    "jsonrepair": "^3.0.0",
+    "pinyin-pro": "^3.0.0",
+    "to-jyutping": "^3.0.0"
+  }
+}

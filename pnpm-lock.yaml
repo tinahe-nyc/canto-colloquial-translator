@@ -1,0 +1,48 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@neondatabase/serverless':
+        specifier: ^1.0.0
+        version: 1.2.1
+      jsonrepair:
+        specifier: ^3.0.0
+        version: 3.15.0
+      pinyin-pro:
+        specifier: ^3.0.0
+        version: 3.29.5
+      to-jyutping:
+        specifier: ^3.0.0
+        version: 3.1.1
+
+packages:
+
+  '@neondatabase/serverless@1.2.1':
+    resolution: {integrity: sha512-PI2JjuyEFE7oZDTkV/s6WP4KEceCwnjQHClfunhysuIATtvcVTBLdA4UgHTnJo7C0mkK+OZ6U7SV1NDnYa0HgA==}
+    engines: {node: '>=19.0.0'}
+
+  jsonrepair@3.15.0:
+    resolution: {integrity: sha512-wy8OTjwsJwQRnQJkKnMJJ9vcytRdBPAgIF/Hy6+s1dAj42BHMKiyL8JzEieIl3JY7idt8eyHwBWTO8mh/+mtwA==}
+    hasBin: true
+
+  pinyin-pro@3.29.5:
+    resolution: {integrity: sha512-Fk5YoRmtdHqJWqAuzYVG/NzvzeCbaG+ZEwbY6Nbps3QAIrvQQEtcm49frcyCM8i2b5najnzPDtYqrHRYTTiuwQ==}
+
+  to-jyutping@3.1.1:
+    resolution: {integrity: sha512-8dqSOTbYC5pBs1DQtC9olmFLhf/pzKqxMfQLRUYu1BXXtWgqyS8dSFy9mHuF0cHjgjtX86pCBvGIvKzzlVM6lw==}
+
+snapshots:
+
+  '@neondatabase/serverless@1.2.1': {}
+
+  jsonrepair@3.15.0: {}
+
+  pinyin-pro@3.29.5: {}
+
+  to-jyutping@3.1.1: {}

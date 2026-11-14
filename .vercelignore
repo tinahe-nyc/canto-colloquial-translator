@@ -1,0 +1,12 @@
+.git
+.github
+.env*
+!.env.example
+.tools
+.qa
+.pnpm-store
+node_modules
+dist
+coverage
+*.log
+CANTO_PROMPT.md

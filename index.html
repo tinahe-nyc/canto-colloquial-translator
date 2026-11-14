@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f9f6ed">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Kapok">
+  <title>Kapok Club · Cantonese &amp; Mandarin speaking coach</title>
+  <meta name="description" content="Practice the Cantonese and Mandarin you want to use with the people in your life.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Crect width='50' height='50' rx='12' fill='%23f9f6ed'/%3E%3Ctext x='4' y='39' font-size='39' fill='%23c04f31'%3E✿%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&amp;family=Noto+Sans+SC:wght@400;600;700&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('kapok-theme') ||
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); } catch {}
+  </script>
+  <style>
+    :root {
+      color-scheme: light; --paper:#f9f6ed; --card:#fffdf7; --ink:#272e29; --muted:#586158;
+      --line:#343b31; --mint:#c1dfb8; --coral:#ef9b78; --blue:#cee0e7; --pink:#efd1d8; --tan:#f1ddb5;
+      --green:#315542; --deepgreen:#315542; --on-green:#fffef3; --fine:#b5b9a8; --red:#a13f2c;
+      --head:'Gaegu','Comic Sans MS','Trebuchet MS',sans-serif;
+      --body:'Nunito','Segoe UI',system-ui,sans-serif; --han:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+    }
+    :root[data-theme=dark] {
+      color-scheme:dark; --paper:#202723; --card:#29332c; --ink:#f8f2df; --muted:#d0d2be; --line:#a7ad98;
+      --mint:#36573d; --coral:#774e3e; --blue:#374f58; --pink:#61434f; --tan:#514936;
+      --green:#c5e5c3; --deepgreen:#41664e; --on-green:#fffcec; --fine:#666f60; --red:#ffb8a6;
+    }
+    *,*::before,*::after {box-sizing:border-box}
+    [hidden] {display:none!important}
+    html {min-width:290px;scroll-padding-top:1rem}
+    body {background:var(--paper);background-image:radial-gradient(color-mix(in srgb,var(--muted) 12%,transparent) .65px,transparent .8px);background-size:6px 6px;
+      color:var(--ink);font-family:var(--body);margin:0;line-height:1.5;-webkit-text-size-adjust:100%}
+    button,input,textarea,select {font:inherit;color:inherit}
+    button {cursor:pointer;touch-action:manipulation}
+    button:disabled {cursor:wait;opacity:.68}
+    :focus-visible {outline:3px solid var(--green);outline-offset:4px}
+    a {color:var(--green)}
+    h1,h2,h3,h4,p {margin:0}
+    h1,h2,h3,h4,.hand {font-family:var(--head);line-height:1.04}
+    svg {display:block}
+    .symbols {position:absolute;width:0;height:0;overflow:hidden}
+    .icon {width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .sr {position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .skip {position:absolute;left:0;top:0;transform:translateY(-130%);background:var(--card);padding:8px;z-index:5}
+    .skip:focus {transform:translateY(0)}
+    .shell {width:min(1136px,calc(100% - 64px));margin-inline:auto}
+    .masthead {display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:86px;border-bottom:1.5px solid var(--line)}
+    .brand {display:inline-flex;align-items:center;gap:10px;font:700 35px/.92 var(--head);letter-spacing:-1.7px;white-space:nowrap;background:none;border:0;padding:4px 0}
+    .brand-flower {width:40px;height:40px;color:var(--ink)}
+    .nav-wrap,.top-nav {display:flex;align-items:center}
+    .nav-wrap {gap:12px}.top-nav {gap:5px}
+    .member-tools {display:flex;align-items:center;gap:8px}.member-tools .plain {font-size:13px;white-space:nowrap}
+    .tab,.round,.secondary,.primary,.sample,.listen,.word,.plain {border:1.5px solid var(--line);border-radius:8px 10px 7px 10px;background:var(--card);color:var(--ink)}
+    .tab,.secondary,.primary,.listen,.sample,.plain {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px}
+    .tab {padding:6px 13px;border-color:transparent;background:none;font-weight:800;font-size:14px}
+    .tab[aria-current=page] {background:var(--mint);border-color:var(--line);transform:rotate(-1deg)}
+    .round {width:41px;height:41px;border-radius:50% 46% 49% 46%;display:inline-grid;place-items:center}
+    .theme-icon-sun, [data-theme=dark] .theme-icon-moon {display:none}
+    [data-theme=dark] .theme-icon-sun {display:block}
+    .eyebrow {font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--green)}
+    .primary,.secondary,.listen {padding:9px 19px;font-weight:800}
+    .primary {color:var(--on-green);background:var(--deepgreen);box-shadow:2px 3px 0 var(--line);border-radius:8px 10px 9px 7px;font-size:17px;min-height:48px;transition:transform .14s,box-shadow .14s}
+    .primary:hover,.secondary:hover,.listen:hover,.sample:hover,.word:hover,.round:hover {transform:translateY(-1px)}
+    .primary:active {transform:translate(1px,2px);box-shadow:1px 1px 0 var(--line)}
+    .plain {background:none;border-color:transparent;font-weight:800;color:var(--green);padding:2px 6px}
+    .board {background:var(--card);border:1.7px solid var(--line);border-radius:14px 11px 16px 12px;box-shadow:3px 4px 0 color-mix(in srgb,var(--line) 82%,transparent)}
+    .gate {margin-block:clamp(32px,6vw,82px) 34px;display:grid;grid-template-columns:1.05fr 1fr;min-height:480px;background:var(--card);overflow:hidden}
+    .gate-copy {align-self:center;padding:clamp(27px,4vw,62px)}
+    .gate h1 {font-size:clamp(45px,5.7vw,80px);letter-spacing:-.055em;max-width:8em;margin:.18em 0 .15em;line-height:.95;text-wrap:balance}
+    .gate-copy p {color:var(--muted);font-size:16px;max-width:35ch;margin:0 0 23px}
+    .field-label,.label-title {display:block;font-size:15px;font-weight:900;margin-bottom:7px}
+    .gate input,.composer select,.composer textarea {border:1.5px solid var(--line);background:var(--card);border-radius:7px 8px 6px 9px}
+    .gate input {width:100%;height:48px;padding:10px 12px;letter-spacing:.08em}
+    .gate input::placeholder {letter-spacing:normal}
+    .gate-form {max-width:350px}.gate-form .primary {width:100%;margin-top:12px;justify-content:space-between}
+    .illustration {position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--mint);border-left:1.7px solid var(--line)}
+    .illustration::after,.postcard::after {content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(currentColor .62px,transparent .9px);background-size:4px 4px;opacity:.09}
+    .flower-plate {width:95%;max-width:530px;aspect-ratio:490/365;margin:auto}
+    .plate-caption {position:absolute;bottom:20px;left:0;right:0;text-align:center;color:var(--ink);font-family:var(--head);font-size:24px;font-weight:700}
+    .plate-caption [lang] {font:600 .77em var(--han)}
+    .gate-status,.feedback {color:var(--red);font-weight:700;font-size:14px;overflow-wrap:anywhere}
+    .gate-status:not(:empty),.feedback:not(:empty) {margin-top:10px}
+    .hero {display:flex;align-items:center;justify-content:space-between;gap:20px;padding:clamp(23px,3.2vw,46px) 0 24px}
+    .hero h1 {font-size:clamp(44px,6vw,78px);letter-spacing:-.055em;line-height:.99;margin-top:4px}
+    .hero p,.muted {color:var(--muted)}.hero p {margin-top:6px}
+    .hero .sprig {width:130px;height:88px;transform:rotate(5deg);flex:none}
+    .workbench {display:grid;grid-template-columns:minmax(0,1.72fr) minmax(260px,.85fr);gap:26px;align-items:start}
+    .composer,.result-card,.practice,.diff {padding:clamp(20px,2.8vw,33px)}
+    .composer legend {font-size:15px;font-weight:900;margin-bottom:7px;padding:0}
+    .composer fieldset {margin:0;border:0;padding:0;min-width:0}
+    .chipset {display:flex;flex-wrap:wrap;gap:6px}
+    .choice {position:relative;display:inline-flex;cursor:pointer}
+    .choice input {position:absolute;width:1px;height:1px;opacity:0}
+    .choice span {display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:7px 13px;background:var(--card);border:1.25px solid var(--fine);border-radius:8px 6px 9px 6px;font-size:14px;font-weight:800}
+    .choice input:checked+span {background:var(--mint);border-color:var(--line);box-shadow:1px 1px 0 var(--line)}
+    .choice input:focus-visible+span {outline:3px solid var(--green);outline-offset:3px}
+    .input-block {margin:20px 0}
+    .text-box {position:relative}
+    .composer textarea {display:block;width:100%;resize:vertical;min-height:105px;padding:13px 15px 37px;line-height:1.5;font-size:17px}
+    ::placeholder {color:var(--muted);opacity:.85}
+    .mic {position:absolute;right:8px;bottom:5px;display:flex;align-items:center;gap:4px;font-weight:800;font-size:12px;padding:3px 7px;min-height:30px;border:0;border-radius:5px;background:var(--card);color:var(--green)}
+    .mic .icon {width:17px;height:17px}.mic[aria-pressed=true]{background:var(--pink)}
+    .form-settings {display:grid;grid-template-columns:minmax(120px,.9fr) minmax(200px,1.35fr);gap:20px}
+    .composer select {width:100%;height:41px;padding:6px 8px;font-weight:700;font-size:14px}
+    .form-action {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:22px;padding-top:19px;border-top:1px dashed var(--fine)}
+    .form-action .primary {gap:14px}
+    .saved-note {font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+    .saved-note .icon {width:17px}
+    .sidebar {display:grid;gap:18px}
+    .postcard {position:relative;overflow:hidden;isolation:isolate;background:var(--mint);transform:rotate(1deg);border:1.6px solid var(--line);border-radius:9px 13px 7px 12px;text-align:center;padding:4px 12px 9px}
+    .postcard .flower-plate {display:block;width:100%;height:155px}
+    .postcard figcaption {position:relative;font:700 22px/1 var(--head);padding-bottom:2px}
+    figure {margin:0}
+    .examples {padding:18px 20px;background:var(--tan);box-shadow:none}
+    .examples h2 {font-size:29px;letter-spacing:-.03em;margin-bottom:7px}
+    .sample {width:100%;display:flex;justify-content:space-between;text-align:left;padding:7px 0;border:0;border-bottom:1px dashed var(--fine);border-radius:0;background:none;font-size:14px;font-weight:800}
+    .sample:last-child {border:0}
+    .sample .icon {width:17px}
+    .results {margin-top:34px}
+    .results-heading {display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+    .results h2 {font-size:38px;letter-spacing:-.04em}
+    .result-grid {display:grid;gap:20px;align-items:start}
+    .result-grid.dual {grid-template-columns:repeat(2,minmax(0,1fr))}
+    .result-card {min-width:0;overflow-wrap:anywhere}
+    .result-brow {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .starter-stamp {font-size:11px;background:var(--tan);padding:3px 7px;border-radius:4px;font-weight:800}
+    .hanzi {font:600 clamp(29px,4.3vw,48px)/1.4 var(--han);margin-top:8px}
+    .roman {font-size:18px;color:var(--green);font-weight:800;margin-top:3px}
+    .back {margin-top:7px;font-size:16px}
+    .actions,.words,.mini-actions {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .actions {margin:17px 0}.listen {background:var(--blue);font-size:14px;min-height:40px;padding:7px 12px}
+    .listen .icon {width:17px}
+    .words {align-items:stretch}
+    .word {display:grid;gap:1px;text-align:left;padding:7px 10px;background:var(--mint);font-size:13px}
+    .word b {font:600 18px var(--han)}.word span {font-size:12px}.word small {color:var(--muted);font-size:12px}
+    .result-card h4 {font-size:25px;margin:19px 0 8px}
+    .notes {padding-left:18px;margin:0}.notes li+li {margin-top:6px}
+    .tip {background:var(--tan);border-radius:7px 9px 8px 5px;padding:10px 13px;margin:14px 0}
+    .mini-actions {border-top:1px dashed var(--fine);padding-top:12px}
+    .mini-actions .secondary,.diff .secondary,.practice .secondary {font-size:14px;padding:7px 12px}
+    .alternative {border-top:1.5px dashed var(--line);margin-top:20px;padding-top:16px}
+    .alt-title {font:700 27px var(--head)}
+    .alternative .hanzi {font-size:29px}
+    .practice,.diff {margin-top:18px;box-shadow:none}
+    .practice h3,.diff h3 {font-size:29px}.practice p,.diff p {margin-block:6px 12px}
+    .practice ul {padding-left:20px;font-size:14px}
+    .study-space {margin-block:32px;min-height:440px}
+    .site-foot {display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--fine);margin-top:40px;padding:15px 2px 27px;color:var(--muted);font-size:12px;font-weight:700}
+    .site-foot .hand {font-size:18px}
+    @media(max-width:820px) {
+      .shell {width:calc(100% - 36px)}.masthead {min-height:72px}.tab {padding-inline:7px}.nav-wrap {gap:8px}
+      .brand {font-size:29px}.brand-flower {width:32px;height:32px}
+      .workbench {grid-template-columns:minmax(0,1.6fr) minmax(190px,.7fr);gap:15px}.examples {padding:15px}
+      .form-settings {grid-template-columns:1fr;gap:13px}.gate {min-height:430px}.plate-caption {font-size:20px}
+    }
+    @media(max-width:680px) {
+      .shell {width:calc(100% - 30px)}.masthead {flex-wrap:wrap;gap:0;min-height:64px}
+      .masthead.unlocked {display:grid;grid-template-columns:1fr auto}.brand {justify-self:start}
+      .masthead.unlocked .nav-wrap {display:contents}.masthead.unlocked .member-tools {grid-row:1;grid-column:2;margin:11px 0}
+      .masthead.unlocked .top-nav {grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:8px;width:100%;gap:3px}
+      .tab {padding:5px;font-size:13px;gap:5px;min-height:38px}.tab .icon {width:15px;height:15px}
+      .gate {grid-template-columns:1fr;margin-block:23px 24px}
+      .gate-copy {padding:22px 23px 25px;grid-row:2}.gate-copy h1 {font-size:44px;max-width:none}.gate-copy p {margin-bottom:15px}
+      .illustration {grid-row:1;border-left:0;border-bottom:1.5px solid var(--line);height:190px}
+      .illustration .flower-plate {height:210px;width:285px;transform:translateY(-9px)}.plate-caption {bottom:6px;font-size:18px}
+      .gate-form {max-width:none}.hero {padding:25px 0 18px;gap:2px}.hero .sprig {width:65px;height:62px}.hero h1 {font-size:45px}
+      .workbench {grid-template-columns:1fr}.sidebar {grid-template-columns:1fr}.postcard {display:none}.examples {padding:13px 17px}
+      .examples h2 {font-size:25px}.composer {padding:18px 16px 20px}.form-settings {grid-template-columns:1fr}.form-action {margin-top:17px;padding-top:14px}
+      .result-grid.dual {grid-template-columns:1fr}.result-card {padding:19px 15px}.results h2 {font-size:32px}
+      .site-foot {margin-top:26px}.choice span {padding-inline:12px}
+    }
+    @media(max-width:365px){.tab .icon {display:none}.saved-note {font-size:12px}.hero .sprig {display:none}}
+    @media(prefers-reduced-motion: reduce){* {scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <a href="#content" class="skip">Skip to content</a>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <filter id="ink-wobble" x="-4%" y="-4%" width="108%" height="108%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="2" seed="12" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="1.4"/></filter>
+      <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0v5" stroke="#2b4335" stroke-width=".7" opacity=".27"/></pattern>
+      <g id="bloom">
+        <g fill="#f29772" stroke="#303a2f" stroke-width="2.5" stroke-linejoin="round" filter="url(#ink-wobble)">
+          <path d="M0 0C-12-11-24-22-22-39c2-12 10-22 18-23 7 1 19 10 23 20C24-28 13-11 0 0Z"/>
+          <path d="M0 0C-5-16-10-29-7-44 0-62 10-70 15-63c8-10 18-5 23 3 10 16-2 40-38 60Z" transform="rotate(69)"/>
+          <path d="M0 0C-10-14-20-23-17-39c3-20 10-29 19-24 7-10 18-3 24 8C32-38 23-15 0 0Z" transform="rotate(141)"/>
+          <path d="M0 0C-17-10-27-25-25-41c3-13 13-23 20-19 7-9 22-3 27 11C27-31 15-10 0 0Z" transform="rotate(213)"/>
+          <path d="M0 0C-16-8-24-24-21-40c3-19 12-28 21-23 7-10 18-2 24 12C29-32 17-11 0 0Z" transform="rotate(285)"/>
+        </g>
+        <g stroke="#a95138" stroke-width="1.9" fill="none" stroke-linecap="round">
+          <path id="veins" d="M-2-7q-7-17-10-34m12 30q5-16 7-34"/>
+          <use href="#veins" transform="rotate(75)"/><use href="#veins" transform="rotate(145)"/><use href="#veins" transform="rotate(214)"/><use href="#veins" transform="rotate(282)"/>
+        </g>
+        <g fill="#eed090" stroke="#383b2e" stroke-width="2"><ellipse rx="13" ry="11"/><g fill="none" stroke-linecap="round"><path d="m-6 0-3-13m7 10 1-17m4 16 9-13m-5 17 14-6m-18 4-5-7"/></g>
+          <g fill="#665437"><circle cx="-9" cy="-13" r="2"/><circle cx="-1" cy="-20" r="2"/><circle cx="12" cy="-17" r="2"/><circle cx="21" cy="-6" r="2"/></g></g>
+      </g>
+      <symbol id="flower-mark" viewBox="-75 -75 150 150"><use href="#bloom"/></symbol>
+      <symbol id="garden" viewBox="0 0 490 365">
+        <g filter="url(#ink-wobble)" stroke="#334638" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="304" cy="150" r="103" fill="#eedcae" stroke="none"/>
+          <g fill="none" stroke-width="1.8" opacity=".72"><path d="M62 95c7 1 12 3 15 7 3-7 8-10 15-11m303 103q8-3 13 4 5-6 12-6M87 300q46-4 78 1m136 6q32-4 57-1"/><path d="M411 85l1-8m-5 13-7 1m16 0 7 1m-11 4 1 7"/></g>
+          <g fill="#8fb097" stroke-width="1.5" opacity=".65"><path d="m277 267 12-3 1-24 7-2 8 3 0 22 7-1 0-35 6-1 4 0 1 37 11 1 1-27 7 1 0 26 12 1 3-58-3-11 12-31 9 33-5 11 2 57 12-1 1-24 11 0 0 26 15-2 0-36 12-1 1 37 13-1 0 6-161 0z"/><path fill="none" d="m366 165-1-17m-12 51 20 0m-19 7 16-1m-13 7 1 50m6-49 2 49"/></g>
+          <g fill="none" stroke-width="2"><path d="M68 279q49 3 94 0m147 8q57-3 118-1m-47-8 65-2M96 292q22 3 35 1"/></g>
+          <g fill="#aa8062" stroke-width="2.8"><path d="M79 329c56-32 92-55 130-95 26-28 38-71 45-105l5 1c-1 37-21 84-42 112 24-11 48-10 85-26l3 6c-43 23-77 22-101 44-35 30-73 52-108 72z"/></g>
+          <g fill="#5b8965" stroke-width="2.2"><path d="M167 265q-39-6-49-47 39 2 49 47zm23-18q-27-34-8-74 24 34 8 74zm27-42q-1-44-31-61-7 36 31 61zm59 24q34-22 65-11-21 22-65 11zm-39-65q20-39 47-37-5 33-47 37z"/></g>
+          <g fill="url(#hatch)" stroke="none"><path d="M167 265q-39-6-49-47 39 2 49 47zm23-18q-27-34-8-74 24 34 8 74zm27-42q-1-44-31-61-7 36 31 61zm59 24q34-22 65-11-21 22-65 11z"/></g>
+          <g fill="none" stroke-width="1.3"><path d="m122 221 42 42m18-85 7 62m0-90 27 49m66 27 50-7m-92-57 37-28"/></g>
+        </g>
+        <use href="#bloom" transform="translate(252 115) rotate(-8) scale(1.13)"/>
+        <use href="#bloom" transform="translate(303 210) rotate(15) scale(.57)"/>
+        <use href="#bloom" transform="translate(153 204) rotate(-22) scale(.64)"/>
+      </symbol>
+      <symbol id="i-speech" viewBox="0 0 24 24"><path d="M20.7 10.8c0 5-4 8.2-9 8.2l-6 2 .8-4.2C4.4 15.3 3 13.1 3 10.8c0-4.8 3.8-7.8 8.8-7.8s8.9 3 8.9 7.8Z"/><path d="M7.7 9.2h8.2m-8.2 3.6h5.6"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5c3-.9 5.7-.6 8 1.1 2.4-1.7 5.3-2 8-1.1v14c-3-1-5.6-.6-8 1-2.4-1.6-5.1-2-8-1zM12 5.6v13.9"/></symbol>
+      <symbol id="i-cards" viewBox="0 0 24 24"><path d="m3.7 7.6 6.7-3.3 1.6 3M7 8h13v12H7zM10.5 12.5h5.6m-5.6 3.5h3.1"/></symbol>
+      <symbol id="i-guide" viewBox="0 0 24 24"><path d="M2.5 15.5c2.3 0 3-7.7 5.5-7.7 2.3 0 2.5 9.7 5 9.7s2.6-11.3 5-11.3c1.4 0 2.1 3.2 3.5 3.2"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.8 15.3A8.6 8.6 0 0 1 8.8 4.2a8.6 8.6 0 1 0 11 11.1Z"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.8 4.8 7 7m10 10 2.2 2.2m0-14.4L17 7M7 17l-2.2 2.2"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+      <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 10.5v1a6.5 6.5 0 0 0 13 0v-1M12 18v3m-3 0h6"/></symbol>
+      <symbol id="i-audio" viewBox="0 0 24 24"><path d="M3.5 9h4l5-4v14l-5-4h-4zM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3.5"/></symbol>
+      <symbol id="i-snail" viewBox="0 0 24 24"><path d="M2 16q1 4 6 4h9q5 0 5-5l-1-6m-3 6-2-5"/><circle cx="9" cy="12" r="5.4"/><path d="M11 13a2.4 2.4 0 1 1-1-3"/><circle cx="21" cy="8" r="1"/><circle cx="16" cy="9" r="1"/></symbol>
+      <symbol id="teacup" viewBox="0 0 68 47"><g stroke="#343c32" stroke-width="2" fill="none" stroke-linecap="round"><path fill="#f4c4ad" d="M7 20q17-3 36 1-1 19-17 18Q9 39 7 20Z"/><ellipse cx="25" cy="21" rx="17" ry="3.5" fill="#bc9266"/><path d="M44 22q15-5 12 4-2 5-15 7m-38 7q21 6 47-1m-35-24q5-4 2-8m11 9q6-5 3-11"/><path d="M18 29h.01m12 0h.01" stroke-width="3"/><path d="M21 32q3 2 5-1" stroke-width="1.4"/></g></symbol>
+    </defs>
+  </svg>
+  <div class="shell">
+    <header class="masthead" id="masthead">
+      <button type="button" id="brand" class="brand" aria-label="Kapok Club home"><svg class="brand-flower" aria-hidden="true"><use href="#flower-mark"/></svg>Kapok Club</button>
+      <div class="nav-wrap">
+        <nav class="top-nav" id="navigation" aria-label="Main navigation" hidden>
+          <button class="tab" data-view="coach" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-speech"/></svg>Coach</button>
+          <button class="tab" data-view="phrasebook"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>Phrasebook</button>
+          <button class="tab" data-view="review"><svg class="icon" aria-hidden="true"><use href="#i-cards"/></svg>Flashcards</button>
+          <button class="tab" data-view="guides"><svg class="icon" aria-hidden="true"><use href="#i-guide"/></svg>Tone guides</button>
+        </nav>
+        <div class="member-tools"><button id="friend-login" class="plain" type="button">Friend sign-in</button><button id="theme" class="round" type="button" aria-label="Switch color theme"><svg class="icon theme-icon-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon theme-icon-sun" aria-hidden="true"><use href="#i-sun"/></svg></button></div>
+      </div>
+    </header>
+    <main id="content" tabindex="-1">
+      <section class="gate board" id="gate" aria-labelledby="gate-title" hidden>
+        <div class="gate-copy">
+          <div class="eyebrow">Friend sign-in</div>
+          <h1 id="gate-title">Bring your own words.</h1>
+          <p>Enter the club passcode for custom phrases, generated audio, and the shared practice log.</p>
+          <form class="gate-form" id="login">
+            <label class="field-label" for="passcode">Club passcode</label>
+            <input type="password" id="passcode" required autocomplete="current-password" placeholder="Enter your passcode" maxlength="256">
+            <button type="submit" class="primary" id="enter">Enter the club<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <div id="login-status" role="status" class="gate-status"></div>
+            <button type="button" id="back-coach" class="plain">Back to the coach</button>
+          </form>
+        </div>
+        <figure class="illustration">
+          <svg class="flower-plate" aria-hidden="true"><use href="#garden"/></svg>
+          <figcaption class="plate-caption"><span lang="zh-Hans">木棉</span> · muk6 min4 · kapok flower</figcaption>
+        </figure>
+      </section>
+      <section id="coach" hidden aria-labelledby="coach-title">
+        <div class="hero"><div><div class="eyebrow">Speaking coach</div><h1 id="coach-title">What do you want to say?</h1><p id="coach-intro">Practice a starter phrase in everyday Cantonese or Mandarin.</p></div><svg class="sprig" aria-hidden="true" viewBox="-75 -75 150 150"><use href="#bloom" transform="rotate(18) scale(.85)"/></svg></div>
+        <div class="workbench">
+          <form class="composer board" id="composer">
+            <fieldset><legend>Speak in</legend><div class="chipset">
+              <label class="choice"><input type="radio" name="language" value="cantonese" checked><span>Cantonese</span></label>
+              <label class="choice"><input type="radio" name="language" value="mandarin"><span>Mandarin</span></label>
+              <label class="choice"><input type="radio" name="language" value="both"><span>Both</span></label>
+            </div></fieldset>
+            <div class="input-block"><label class="field-label" for="english">Your English phrase</label><div class="text-box">
+              <textarea id="english" rows="3" maxlength="500" required placeholder="Have you eaten yet?">Have you eaten yet?</textarea>
+              <button id="mic" class="mic" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg><span>Dictate</span></button></div>
+              <p id="mic-status" class="feedback" role="status"></p></div>
+            <div class="form-settings"><div><label class="field-label" for="listener">Who’s listening?</label><select id="listener">
+              <option value="parents">My parents</option><option value="family">Family</option><option value="friends">Friends</option><option value="partner">My partner</option><option value="coworker">A coworker</option><option value="shop">Shop or restaurant</option><option value="stranger">Someone new</option>
+            </select></div>
+            <fieldset><legend>How should it sound?</legend><div class="chipset">
+              <label class="choice"><input type="radio" name="style" value="simple" checked><span>Keep it simple</span></label>
+              <label class="choice"><input type="radio" name="style" value="full"><span>Say it fully</span></label>
+            </div></fieldset></div>
+            <div class="form-action"><button class="primary" id="translate" type="submit">Find my words<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+              <span class="saved-note"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>Saved on this device</span></div>
+            <p id="coach-status" class="feedback" role="status"></p>
+            <button id="custom-login" type="button" class="plain" hidden>Sign in for custom phrases</button>
+          </form>
+          <aside class="sidebar" aria-label="Practice ideas">
+            <figure class="postcard"><svg class="flower-plate" aria-hidden="true"><use href="#garden"/></svg><figcaption>Guangzhou’s kapok flower</figcaption></figure>
+            <div class="examples board"><div style="display:flex;align-items:center;justify-content:space-between"><h2>Try a phrase</h2><svg aria-hidden="true" width="51" height="37"><use href="#teacup"/></svg></div><div id="examples"></div></div>
+          </aside>
+        </div>
+        <section class="results" id="results" hidden aria-label="Your spoken phrase" tabindex="-1"></section>
+      </section>
+      <section id="study-panel" class="study-space" hidden aria-label="Study tools"></section>
+      <p id="sound-status" class="feedback" role="status"></p>
+    </main>
+    <footer class="site-foot"><span class="hand">Kapok Club</span><span>Cantonese &amp; Mandarin</span></footer>
+  </div>
+  <script src="./src/study.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const byId = id => document.getElementById(id);
+    const form = byId('composer');
+    const gate = byId('gate');
+    const coach = byId('coach');
+    const results = byId('results');
+    const studyPanel = byId('study-panel');
+    const languages = {cantonese:'Cantonese', mandarin:'Mandarin'};
+    const examples = ['Have you eaten yet?', "I'm going home now.", "I'm tired."];
+    let signedIn = false;
+    let providerReady = false;
+    let gateOpen = false;
+    let sessionVersion = 0;
+    let view = 'coach';
+    let current = null;
+    let translationRun = 0;
+    let recognition;
+    let playback = null;
+    let utterance = null;
+    let playbackVersion = 0;
+    let audioRequest;
+    let playbackUrl;
+    const clips = new Map();
+
+    function make(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text != null) element.textContent = text;
+      return element;
+    }
+    function icon(name) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      const use = document.createElementNS(svg.namespaceURI,'use');
+      svg.setAttribute('class','icon');
+      svg.setAttribute('aria-hidden','true');
+      use.setAttribute('href','#i-' + name);
+      svg.append(use);
+      return svg;
+    }
+    function button(label, className, callback, iconName) {
+      const node = make('button',className);
+      node.type = 'button';
+      if (iconName) node.append(icon(iconName));
+      node.append(document.createTextNode(label));
+      node.addEventListener('click',callback);
+      return node;
+    }
+    function status(id, text) { byId(id).textContent = text; }
+    function setLocked() {
+      signedIn = false;
+      providerReady = false;
+      sessionVersion++;
+      translationRun++;
+      byId('friend-login').hidden=false;
+      byId('coach-intro').textContent='Practice a starter phrase in everyday Cantonese or Mandarin.';
+      openGate();
+    }
+    function openGate() {
+      stopAudio();
+      recognition?.abort();
+      gateOpen = true;
+      gate.hidden = false;
+      coach.hidden = studyPanel.hidden = true;
+      byId('passcode').focus();
+      gate.scrollIntoView({block:'start'});
+    }
+    async function api(body) {
+      let response;
+      try {
+        response = await fetch('/api/translate', body === undefined ?
+          {cache:'no-store'} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      } catch { throw new Error('Couldn’t reach the club. Check your connection and try again.'); }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 401 && signedIn) {
+          setLocked();
+          status('login-status','Your session ended. Enter the passcode again.');
+        }
+        throw new Error(typeof data.error === 'string' ? data.error : 'The club couldn’t finish that request. Please try again.');
+      }
+      return data;
+    }
+    function startCoach(info) {
+      signedIn = !!info.authenticated;
+      providerReady = !!info.providerReady;
+      byId('friend-login').hidden = signedIn;
+      gateOpen=false;
+      gate.hidden=true;
+      byId('navigation').hidden = false;
+      byId('masthead').classList.add('unlocked');
+      const starters = Array.isArray(info.starterPhrases) && info.starterPhrases.length ? info.starterPhrases : examples;
+      byId('examples').replaceChildren(...starters.map(phrase => {
+        const sample = button(phrase,'sample',() => {
+          byId('english').value = phrase;
+          byId('english').focus();
+          status('coach-status','');
+          byId('custom-login').hidden=true;
+        });
+        sample.append(icon('arrow'));
+        return sample;
+      }));
+      byId('coach-intro').textContent = signedIn && providerReady ?
+        'Turn something from your day into a line you can say out loud.' : 'Practice a starter phrase in everyday Cantonese or Mandarin.';
+      byId('custom-login').hidden=true;
+      status('coach-status',signedIn && !providerReady ? 'The club is in starter mode. Choose one of the three example phrases.' : '');
+      navigate(currentHash(),false);
+      if (current) showResults();
+    }
+    byId('login').addEventListener('submit',async event => {
+      event.preventDefault();
+      const enter = byId('enter');
+      enter.disabled = true;
+      const version = ++sessionVersion;
+      status('login-status','Opening the club…');
+      try {
+        const data = await api({action:'login',passcode:byId('passcode').value});
+        if (version !== sessionVersion) return;
+        if (!data.authenticated) throw new Error('That passcode didn’t open the club. Try again.');
+        byId('passcode').value = '';
+        status('login-status','');
+        startCoach(data);
+      } catch(error) {
+        status('login-status',error.message);
+        byId('passcode').focus();
+      } finally {enter.disabled = false;}
+    });
+    const views = ['coach','phrasebook','review','guides','jyutping','pinyin'];
+    function currentHash() {
+      const value = location.hash.slice(1);
+      return views.includes(value) ? value : 'coach';
+    }
+    function navigate(next, writeHash=true) {
+      if (!views.includes(next)) return;
+      if (view !== next || gateOpen) {stopAudio(); recognition?.abort();}
+      gateOpen=false;gate.hidden=true;
+      view = next;
+      if (writeHash && currentHash() !== view) history.pushState(null,'','#' + view);
+      coach.hidden = view !== 'coach';
+      studyPanel.hidden = !coach.hidden;
+      const navView = ['jyutping','pinyin'].includes(view) ? 'guides' : view;
+      for (const tab of byId('navigation').querySelectorAll('button')) {
+        if (tab.dataset.view === navView) tab.setAttribute('aria-current','page');
+        else tab.removeAttribute('aria-current');
+      }
+      if (coach.hidden) window.Study.render(view,studyPanel,{speak,stopAudio,reopen,navigate});
+      if (writeHash) window.scrollTo({top:0,behavior:'instant'});
+    }
+    for (const tab of byId('navigation').querySelectorAll('button')) {
+      tab.addEventListener('click',() => navigate(tab.dataset.view));
+    }
+    addEventListener('hashchange',() => navigate(currentHash(),false));
+    byId('brand').addEventListener('click',() => navigate('coach'));
+    byId('friend-login').addEventListener('click',openGate);
+    byId('custom-login').addEventListener('click',openGate);
+    byId('back-coach').addEventListener('click',() => navigate('coach'));
+    function updateTheme() {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      byId('theme').setAttribute('aria-label',dark ? 'Switch to light mode' : 'Switch to dark mode');
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#202723' : '#f9f6ed';
+    }
+    byId('theme').addEventListener('click',() => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      try {localStorage.setItem('kapok-theme',next);} catch {}
+      updateTheme();
+    });
+    updateTheme();
+
+    byId('mic').addEventListener('click',() => {
+      if (recognition) {recognition.stop();return;}
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Recognition) {
+        status('mic-status','Dictation isn’t available in this browser. Try the microphone on your keyboard, or type your phrase.');
+        byId('english').focus();return;
+      }
+      const recognizer = new Recognition();
+      recognition = recognizer;
+      const input = byId('english');
+      const previous = input.value.trim();
+      recognizer.lang = 'en-US';
+      recognizer.interimResults = true;
+      recognizer.onresult = event => {
+        const text = Array.from(event.results,result => result[0].transcript).join(' ');
+        input.value = (previous + ' ' + text).trim().slice(0,input.maxLength);
+      };
+      recognizer.onstart = () => {
+        status('mic-status','Listening in English…');
+        byId('mic').setAttribute('aria-pressed','true');byId('mic').lastElementChild.textContent='Stop';
+      };
+      recognizer.onerror = event => {
+        const reasons = {'not-allowed':'Microphone access was declined. Enable it in your browser, or type your phrase.',
+          'no-speech':'No speech was heard. Try again or type your phrase.', 'network':'Dictation could not connect. Try typing your phrase.'};
+        status('mic-status',event.error === 'aborted' ? '' : reasons[event.error] || 'The microphone couldn’t record this phrase. Try again.');
+      };
+      recognizer.onend = () => {
+        recognition = null;
+        byId('mic').setAttribute('aria-pressed','false');byId('mic').lastElementChild.textContent='Dictate';
+        if (byId('mic-status').textContent === 'Listening in English…') status('mic-status','');
+      };
+      try {recognizer.start();} catch {recognition=null;status('mic-status','Your microphone could not start. Try your keyboard’s dictation button.');}
+    });
+
+    function stopAudio() {
+      playbackVersion++;
+      audioRequest?.abort();audioRequest=null;
+      if (playback) {playback.pause();playback=null;}
+      if (playbackUrl) {URL.revokeObjectURL(playbackUrl);playbackUrl=null;}
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      utterance = null;
+      status('sound-status','');
+    }
+    function voiceFor(language) {
+      const voices = window.speechSynthesis?.getVoices() || [];
+      return voices.find(voice => {
+        const tag = voice.lang.toLowerCase().replaceAll('_','-');
+        return language === 'cantonese' ? /^(yue\b|zh-(hk|mo)|zh-hant-hk)/.test(tag)
+          : /^(cmn\b|zh-(cn|sg)|zh-hans)/.test(tag);
+      });
+    }
+    function deviceSpeech(text,language,slow,version) {
+      const voice=voiceFor(language);
+      if (!voice) throw new Error('No '+languages[language]+' voice is available. Install one in your device’s speech settings and reload the page.');
+      utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = voice;utterance.lang = voice.lang;utterance.rate = slow ? .65 : .95;
+      status('sound-status','Playing with your device’s ' + languages[language] + ' voice.');
+      utterance.onerror = event => {if (version === playbackVersion && !['canceled','interrupted'].includes(event.error)) status('sound-status','This device voice could not play.');};
+      window.speechSynthesis.speak(utterance);
+    }
+    async function diskClip(key,blob) {
+      if (!window.caches || !crypto.subtle) return;
+      try {
+        const digest = new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(key)));
+        const path = '/.kapok-audio/' + Array.from(digest,n => n.toString(16).padStart(2,'0')).join('');
+        const cache = await caches.open('kapok-voice-v1');
+        if (!blob) return (await cache.match(path))?.blob();
+        await cache.put(path,new Response(blob));
+        const keys = await cache.keys();
+        await Promise.all(keys.slice(0,Math.max(0,keys.length-45)).map(old => cache.delete(old)));
+      } catch {}
+    }
+    async function speak(text,language,slow=false) {
+      stopAudio();
+      const version = playbackVersion;
+      if (!signedIn || !providerReady) {deviceSpeech(text,language,slow,version);return;}
+      const key = JSON.stringify([language,!!slow,text]);
+      let blob = clips.get(key) || await diskClip(key);
+      if (version !== playbackVersion) return;
+      if (!blob) {
+        audioRequest = new AbortController();
+        let response;
+        try {
+          response = await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({text,language,slow:!!slow}),signal:audioRequest.signal});
+        } catch(error) {
+          if (version !== playbackVersion) return;
+          throw new Error('Audio couldn’t connect. Try again when you’re online.');
+        }
+        if (version !== playbackVersion) return;
+        if (!response.ok) {
+          if (response.status === 401) {setLocked();status('login-status','Your session ended. Enter the passcode again.');return;}
+          if (voiceFor(language)) {deviceSpeech(text,language,slow,version);return;}
+          const data = await response.json().catch(() => ({}));
+          throw new Error((typeof data.error === 'string' ? data.error + ' ' : '') + 'Install a ' + languages[language] + ' voice on your device for offline playback.');
+        }
+        blob = await response.blob();
+        if (!blob.size || !blob.type.startsWith('audio/')) throw new Error('The voice returned an empty clip. Try again.');
+        if (clips.size >= 20) clips.delete(clips.keys().next().value);
+        clips.set(key,blob);
+        void diskClip(key,blob);
+      }
+      if (version !== playbackVersion) return;
+      playbackUrl = URL.createObjectURL(blob);
+      playback = new Audio(playbackUrl);
+      try {await playback.play();} catch {if(version === playbackVersion) throw new Error('Playback did not start. Tap “Hear it” again.');}
+    }
+    function pauseAudio() {
+      if (playback && !playback.paused) {playback.pause();status('sound-status','Audio paused.');}
+      else if (playback && playback.paused && !playback.ended) {playback.play().catch(() => status('sound-status','Tap “Hear it” to play again.'));status('sound-status','');}
+      else if (utterance && window.speechSynthesis.paused) {window.speechSynthesis.resume();status('sound-status','');}
+      else if (utterance && window.speechSynthesis.speaking) {window.speechSynthesis.pause();status('sound-status','Audio paused.');}
+      else stopAudio();
+    }
+    function playSafe(text,language,slow) {return speak(text,language,slow).catch(error => status('sound-status',error.message));}
+
+    function save(entry) {
+      try {
+        if (window.Study.save(entry) !== false) return true;
+      } catch {}
+      status('coach-status','This browser couldn’t save to your phrasebook. Your result is still below.');
+      return false;
+    }
+    function reopen(entry) {
+      translationRun++;
+      current=entry;
+      byId('english').value=entry.english;
+      byId('listener').value=entry.listener;
+      form.elements.namedItem('language').value=entry.language;
+      form.elements.namedItem('style').value=entry.style;
+      status('coach-status','');
+      navigate('coach');
+      showResults(true);
+    }
+    function showResults(focus=false) {
+      const entry=current;
+      if (!entry) {results.hidden=true;return;}
+      results.hidden=false;
+      results.replaceChildren();
+      const header=make('div','results-heading');
+      header.append(make('h2',null,'Your spoken phrase'),button('Open phrasebook','plain',() => navigate('phrasebook'),'book'));
+      results.append(header);
+      const grid=make('div','result-grid' + (Object.keys(entry.results).length > 1 ? ' dual' : ''));
+      for (const [language,line] of Object.entries(entry.results)) {
+        const card=make('article','result-card board');
+        const brow=make('div','result-brow');
+        brow.append(make('h3','eyebrow',languages[language]));
+        if (entry.sources?.[language] === 'starter') brow.append(make('span','starter-stamp','Built-in phrase'));
+        card.append(brow);
+        renderLine(card,line,language);
+        const actions=make('div','mini-actions');
+        const message=make('p','feedback');message.setAttribute('role','status');
+        if (!entry.alternatives?.[language]?.length) actions.append(button('Show other ways','secondary',async event => {
+          if (!signedIn && entry.sources?.[language] !== 'starter') {openGate();return;}
+          const trigger=event.currentTarget;trigger.disabled=true;message.textContent='Finding another way to say it…';
+          try {
+            const data=await api(entry.sources?.[language] === 'starter' ?
+              {action:'starter-alternatives',english:entry.english,language} :
+              {action:'alternatives',english:entry.english,listener:entry.listener,style:entry.style,language,result:line});
+            entry.alternatives ||= {};
+            entry.alternatives[language]=data.alternatives;
+            save(entry);if (current===entry) showResults();
+          } catch(error){message.textContent=error.message;} finally {trigger.disabled=false;}
+        }));
+        const practiceButton=button('Log practice','plain',async event => {
+          const trigger=event.currentTarget;trigger.disabled=true;
+          try {
+            const row=await api({action:'practice',language});
+            entry.practice ||= {};entry.practice[language]=row;
+            save(entry);if (current===entry) showResults();
+          } catch(error){message.textContent=error.message;trigger.disabled=false;}
+        });
+        if (entry.practice?.[language]) {
+          const logged=entry.practice[language];actions.append(make('span','saved-note','Practice logged · #' + logged.id));
+        } else if (signedIn) actions.append(practiceButton);
+        card.append(actions,message);
+        for (const [index,alternative] of (entry.alternatives?.[language] || []).entries()) {
+          const area=make('section','alternative');area.append(make('h3','alt-title','Another way ' + (index+1)));
+          renderLine(area,alternative,language);card.append(area);
+        }
+        grid.append(card);
+      }
+      results.append(grid);
+      if (entry.results.cantonese && entry.results.mandarin) renderComparison(entry);
+      if (signedIn) renderPractice();
+      if (focus) {results.focus({preventScroll:true});results.scrollIntoView({block:'start',behavior:'instant'});}
+    }
+    function renderLine(host,line,language) {
+      const hanzi=make('p','hanzi',line.hanzi);
+      hanzi.lang=language==='cantonese' ? 'yue-Hans' : 'zh-Hans';
+      const roman=make('p','roman',line.jyutping);roman.setAttribute('aria-label',language==='cantonese'?'Jyutping':'Pinyin');
+      const actionRow=make('div','actions');
+      actionRow.append(button('Hear it','listen',() => playSafe(line.hanzi,language,false),'audio'),
+        button('Nice and slow','listen',() => playSafe(line.hanzi,language,true),'snail'),
+        button('Pause / resume','plain',pauseAudio,'pause'));
+      host.append(hanzi,roman,make('p','back',line.back),actionRow,make('h4',null,'Word by word'));
+      const chips=make('div','words');
+      for (const word of line.words || []) {
+        const chip=button('','word',() => playSafe(word.hanzi,language,false));
+        chip.setAttribute('aria-label','Hear ' + word.jyutping + ' — ' + word.meaning);
+        const spelling=make('b',null,word.hanzi);spelling.lang=hanzi.lang;
+        chip.append(spelling,make('span',null,word.jyutping),make('small',null,word.meaning));chips.append(chip);
+      }
+      host.append(chips,make('h4',null,'Why it’s said this way'));
+      const notes=make('ul','notes');
+      for (const item of line.notes || []) {
+        const li=make('li');
+        const choice=[item.english,item.chosen].filter(Boolean).join(' → ');
+        if (choice) li.append(make('strong',null,choice + '. '));
+        li.append(document.createTextNode(item.note || ''));notes.append(li);
+      }
+      const tip=make('p','tip');tip.append(make('strong',null,'Speaking tip · '),document.createTextNode(line.tip || ''));
+      host.append(notes,tip);
+    }
+    function renderComparison(entry) {
+      const area=make('section','diff board');area.append(make('h3',null,'How they differ'));
+      if (entry.difference) area.append(make('p',null,entry.difference));
+      else {
+        const feedback=make('p','feedback');feedback.setAttribute('role','status');
+        area.append(button('Compare these lines','secondary',async event => {
+          const useStarter=Object.values(entry.sources || {}).length === 2 && Object.values(entry.sources).every(source => source==='starter');
+          if (!signedIn && !useStarter) {openGate();return;}
+          const trigger=event.currentTarget;trigger.disabled=true;feedback.textContent='Comparing the two lines…';
+          try {
+            const data=await api(useStarter ? {action:'starter-compare',english:entry.english} :
+              {action:'compare',english:entry.english,cantonese:entry.results.cantonese,mandarin:entry.results.mandarin});
+            entry.difference=data.difference;save(entry);if (current===entry) showResults();
+          } catch(error){feedback.textContent=error.message;} finally{trigger.disabled=false;}
+        }),feedback);
+      }
+      results.append(area);
+    }
+    function renderPractice() {
+      const area=make('section','practice board');area.append(make('h3',null,'Club practice log'),
+        make('p','muted','Log practice to share just the language and time with the club. Your phrase stays in your phrasebook.'));
+      const list=make('ul');const feedback=make('p','feedback');feedback.setAttribute('role','status');
+      area.append(button('See recent practice','secondary',async event => {
+        const trigger=event.currentTarget;trigger.disabled=true;
+        try {
+          const data=await api({action:'recent-practice'});
+          list.replaceChildren(...data.entries.map(row => make('li',null,languages[row.language] + ' · ' + new Date(row.created_at).toLocaleString() + ' · #' + row.id)));
+          feedback.textContent=data.entries.length?'':'No practices logged yet.';
+        } catch(error){feedback.textContent=error.message;} finally{trigger.disabled=false;}
+      }),list,feedback);results.append(area);
+    }
+    form.addEventListener('submit',async event => {
+      event.preventDefault();
+      const english=byId('english').value.trim();
+      if (!english) {byId('english').focus();status('coach-status','Add an English phrase first.');return;}
+      byId('custom-login').hidden=true;
+      const normalize=text => text.normalize('NFKC').toLowerCase().replace(/[^a-z0-9]/g,'');
+      if ((!signedIn || !providerReady) && !examples.some(phrase => normalize(phrase)===normalize(english))) {
+        status('coach-status',signedIn ? 'The club is in starter mode. Choose a phrase from “Try a phrase”.' : 'Choose a starter phrase, or use the friend passcode to practice your own words.');
+        byId('custom-login').hidden=signedIn;
+        return;
+      }
+      recognition?.stop();stopAudio();
+      const run=++translationRun;
+      const trigger=byId('translate');
+      const language=form.elements.namedItem('language').value;
+      const style=form.elements.namedItem('style').value;
+      const listener=byId('listener').value;
+      const requested=language==='both'?['cantonese','mandarin']:[language];
+      trigger.disabled=true;
+      status('coach-status','Asking the aunties…');
+      const outcomes=await Promise.allSettled(requested.map(lang => api(signedIn && providerReady ?
+        {action:'translate',english,language:lang,listener,style} : {action:'starter',english,language:lang})));
+      trigger.disabled=false;
+      if (run!==translationRun) return;
+      const entry={id:crypto.randomUUID(),savedAt:new Date().toISOString(),english,language,listener,style,results:{},sources:{}};
+      const errors=[];
+      outcomes.forEach((outcome,index) => {
+        const lang=requested[index];
+        if (outcome.status==='fulfilled' && outcome.value.result) {
+          entry.results[lang]=outcome.value.result;entry.sources[lang]=outcome.value.source;
+        } else {
+          const detail=outcome.status==='rejected'?outcome.reason.message:'No spoken line came back.';
+          errors.push((requested.length>1?languages[lang]+': ':'')+detail);
+        }
+      });
+      status('coach-status',errors.join(' '));
+      if (!Object.keys(entry.results).length) {current=null;showResults();return;}
+      if (Object.keys(entry.results).length===1) entry.language=Object.keys(entry.results)[0];
+      current=entry;save(entry);showResults(view==='coach' && !errors.length);
+    });
+    window.speechSynthesis?.getVoices();
+    startCoach({});
+    const initialVersion=sessionVersion;
+    api().then(data => {
+      if (sessionVersion===initialVersion && data.authenticated) startCoach(data);
+    }).catch(() => {});
+  })();
+  </script>
+</body>
+</html>

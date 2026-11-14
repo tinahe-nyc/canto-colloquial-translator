@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+*.local
+.vercel/
+node_modules/
+.pnpm-store/
+.tools/
+.qa/
+dist/
+coverage/
+*.log
+.DS_Store
+# Personal project brief stays on the owner's machine.
+CANTO_PROMPT.md
