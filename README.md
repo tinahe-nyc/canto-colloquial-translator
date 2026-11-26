@@ -1,4 +1,4 @@
-# Say It Like a Local
+# Kapok Club
 
 [Open the speaking coach](https://canto-colloquial-translator.vercel.app). On iPhone, open the link in Safari, tap **Share → Add to Home Screen**, then **Add**. This is a web app, not an App Store listing. A network connection is needed to fetch lessons.
 

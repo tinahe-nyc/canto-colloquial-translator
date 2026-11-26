@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Say It Like a Local</title>
+<title>Kapok Club</title>
 <meta name="theme-color" content="#f4f2ed">
+<meta name="apple-mobile-web-app-title" content="Kapok Club">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,6 +31,7 @@
   h1 span { color: var(--coral); }
   .hero { display: flex; align-items: center; gap: 6px; margin: 4px 0 14px; }
   .hero svg { width: 80px; height: 80px; flex: none; }
+  .tagline { margin: 4px 0 0; font: 700 23px/1.1 Gaegu, 'Comic Sans MS', cursive; }
   .sub { color: var(--soft); margin: 6px 0 0; font-size: 15px; }
   .card { background: var(--card); border: var(--line); border-radius: var(--wob); padding: 16px; margin-bottom: 18px; position: relative; }
   label.small { display: block; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
@@ -325,7 +327,8 @@ function render() {
     app.innerHTML = `
       <div class="gate">
         ${D.blob()}
-        <h1>Say it like a <span>local</span></h1>
+        <h1>Kapok <span>Club</span></h1>
+        <p class="tagline">say it like a local</p>
         <p class="sub">Try a sample lesson or enter the friends passcode.</p>
         <input type="password" id="code" aria-label="Friends passcode" placeholder="Passcode" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <div class="row"><button class="main" id="go">Let's go!</button></div>
@@ -352,7 +355,8 @@ function render() {
 
   app.innerHTML = `
     <div class="hero">${D.flower('bloom')}<div>
-      <h1>Say it like a <span>local</span></h1>
+      <h1>Kapok <span>Club</span></h1>
+      <p class="tagline">say it like a local</p>
       <p class="sub">Tell me in English. I'll give you the ${state.lang === 'both' ? 'Cantonese and Mandarin' : L().name} people actually say, how it sounds, and why.</p></div></div>
     <div class="langs">${Object.entries(SWITCH).map(([k, v]) => `<button class="lang ${k === state.lang ? 'on' : ''}" data-lang="${k}">${v.name} <span>${v.native}</span></button>`).join('')}</div>
     ${state.lang === 'both'
