@@ -2,9 +2,9 @@
 
 [Open the speaking coach](https://canto-colloquial-translator.vercel.app). On iPhone, open the link in Safari, tap **Share → Add to Home Screen**, then **Add**. This is a web app, not an App Store listing. A network connection is needed to fetch lessons.
 
-A public speaking coach for everyday Cantonese and Mandarin. Try a starter phrase, then read the Jyutping or Pinyin out loud. Each lesson includes a literal translation, tappable words, notes and a speaking tip. Select **Both** to compare the two languages. Sign in with a friends passcode to translate your own English for the listener you choose.
+A public speaking coach for everyday Cantonese. Try a starter phrase, then read the Jyutping out loud. Each lesson includes a literal translation, tappable words, notes and a speaking tip. Sign in with a friends passcode to translate your own English for the listener you choose.
 
-The three built-in lessons work without an AI key: **Have you eaten yet?**, **I'm going home now.**, and **I'm tired.** Starter lessons are labeled and do not change with listener or style. Connect OpenRouter for new phrases, listener-specific wording and generated audio. The microphone depends on speech recognition support and permission on your device. Single-tone guide examples need an installed Cantonese or Mandarin device voice.
+The three built-in lessons work without an AI key: **Have you eaten yet?**, **I'm going home now.**, and **I'm tired.** Starter lessons are labeled and do not change with listener or style. Connect OpenRouter for new phrases, listener-specific wording and generated audio. The microphone depends on speech recognition support and permission on your device. Single-tone guide examples need an installed Cantonese device voice.
 
 ## Run locally
 

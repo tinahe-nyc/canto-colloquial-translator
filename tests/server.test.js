@@ -49,26 +49,30 @@ test('a friend can reopen a session and practice an exact starter without provid
   assert.equal((await call(translate, {}, cookie, 'GET')).data.authenticated, false);
 });
 
-test('public starters serve only the authored curriculum even when a paid provider is enabled', async t => {
-  await withServer(t, true);
+test('public starters serve the authored Cantonese lessons and retired modes cannot reach providers', async t => {
+  const cookie = await withServer(t, true);
   const network = t.mock.method(globalThis, 'fetch', () => { throw new Error('Unexpected network request'); });
-  const visitor = { english: starterPhrases[0], language: 'mandarin' };
+  const visitor = { english: starterPhrases[0], language: 'cantonese' };
   const main = await call(translate, { ...visitor, action: 'starter' });
   assert.equal(main.status, 200);
   assert.equal(main.headers['Set-Cookie'], undefined);
   assert.equal(main.data.source, 'starter');
-  assert.equal(main.data.result.hanzi, starterLesson(visitor.english).mandarin[0].hanzi);
+  assert.equal(main.data.result.hanzi, starterLesson(visitor.english).cantonese[0].hanzi);
   const alternatives = await call(translate, { ...visitor, action: 'starter-alternatives' });
-  assert.deepEqual(alternatives.data.alternatives, starterLesson(visitor.english).mandarin.slice(1));
-  const comparison = await call(translate, { english: visitor.english, action: 'starter-compare' });
-  assert.equal(comparison.data.difference, starterLesson(visitor.english).difference);
-  for (const action of ['starter', 'starter-alternatives', 'starter-compare']) {
+  assert.deepEqual(alternatives.data.alternatives, starterLesson(visitor.english).cantonese.slice(1));
+  for (const action of ['starter', 'starter-alternatives']) {
     assert.equal((await call(translate, { ...visitor, action, english: 'My custom phrase.' })).status, 400);
+    assert.equal((await call(translate, { ...visitor, action, language: 'mandarin' })).status, 400);
   }
   for (const action of ['translate', 'alternatives', 'compare', 'practice', 'recent-practice']) {
     assert.equal((await call(translate, { ...visitor, action })).status, 401);
   }
-  assert.equal((await call(speak, { text: main.data.result.hanzi, language: 'mandarin' })).status, 401);
+  for (const action of ['starter-compare', 'compare']) {
+    assert.equal((await call(translate, { ...visitor, action }, cookie)).status, 400);
+  }
+  assert.equal((await call(translate, { action: 'coach', lang: 'zh', text: visitor.english }, cookie)).status, 400);
+  assert.equal((await call(translate, { action: 'coach', mode: 'compare', text: visitor.english }, cookie)).status, 400);
+  assert.equal((await call(speak, { text: main.data.result.hanzi, language: 'mandarin' }, cookie)).status, 400);
   assert.equal(network.mock.callCount(), 0);
 });
 
@@ -125,7 +129,7 @@ test('the new coach uses the existing session and reports the cost of both gener
       choices: [{ message: { content: answers.shift() } }], usage: { cost: 0.01 },
     });
   });
-  const input = { action: 'coach', text: 'Have you eaten yet?', lang: 'yue', about: 'Keep the context' };
+  const input = { action: 'coach', text: 'Have you eaten yet?', about: 'Keep the context' };
   assert.equal((await call(translate, input)).status, 401);
   assert.equal(network.mock.callCount(), 0);
   const response = await call(translate, input, cookie);

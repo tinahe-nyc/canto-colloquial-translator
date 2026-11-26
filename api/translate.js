@@ -9,7 +9,7 @@ import { recordPractice, recentPractice } from '../lib/server/practice.js';
 
 const listeners = new Set(['parents', 'family', 'friends', 'partner', 'coworker', 'shop', 'stranger']);
 const publicLessons = new Map([
-  ['starter', 'translate'], ['starter-alternatives', 'alternatives'], ['starter-compare', 'compare'],
+  ['starter', 'translate'], ['starter-alternatives', 'alternatives'],
 ]);
 
 function status(authenticated) {
@@ -23,7 +23,6 @@ function lineText(value) {
 function translationInput(body) {
   const { action } = body;
   const english = inputText(body.english, 600, 'Enter a phrase of up to 600 characters.');
-  if (action === 'compare') return { action, english, cantonese: lineText(body.cantonese), mandarin: lineText(body.mandarin) };
   if (action !== 'translate' && action !== 'alternatives') throw new ClientError(400, 'Unknown coach action.');
   const lang = language(body.language);
   const listener = body.listener ?? 'parents';
@@ -34,10 +33,9 @@ function translationInput(body) {
   return input;
 }
 
-function starterResponse(input, lesson) {
-  if (input.action === 'compare') return { difference: lesson.difference, source: 'starter' };
-  const [main, ...alternatives] = lesson[input.language];
-  if (input.action === 'alternatives') return { alternatives, source: 'starter' };
+function starterResponse(action, lesson) {
+  const [main, ...alternatives] = lesson.cantonese;
+  if (action === 'alternatives') return { alternatives, source: 'starter' };
   return { result: main, source: 'starter' };
 }
 
@@ -49,9 +47,8 @@ export default async function translate(req, res) {
     if (publicLessons.has(body.action)) {
       const lesson = starterLesson(inputText(body.english, 600, 'Choose a starter phrase.'));
       if (!lesson) throw new ClientError(400, 'Choose one of the three starter phrases.');
-      const action = publicLessons.get(body.action);
-      const lang = action === 'compare' ? undefined : language(body.language);
-      return sendJson(res, 200, starterResponse({ action, language: lang }, lesson));
+      language(body.language);
+      return sendJson(res, 200, starterResponse(publicLessons.get(body.action), lesson));
     }
     if (body.action === 'login') {
       login(req, res, body.passcode);
@@ -72,7 +69,7 @@ export default async function translate(req, res) {
     if (!process.env.OPENROUTER_API_KEY) {
       const lesson = starterLesson(input.english);
       if (!lesson) throw new ClientError(503, 'Custom phrases need OpenRouter. Choose one of the three starter phrases for now.');
-      return sendJson(res, 200, starterResponse(input, lesson));
+      return sendJson(res, 200, starterResponse(input.action, lesson));
     }
     throttle('text:' + id, 60, 10 * 60000);
     return sendJson(res, 200, await generate(input));

@@ -1,12 +1,11 @@
 # Kapok Club — project guide
 
-Build a speaking coach for natural Guangzhou Cantonese and everyday mainland Mandarin. Keep the front end readable by someone who cannot read Chinese: romanization is part of every result. Preserve meaning, listener and register; keep starter examples clearly distinguishable from generated lessons. The original owner's brief stays local in `CANTO_PROMPT.md`.
+Build a speaking coach for natural Guangzhou Cantonese. Keep the front end readable by someone who cannot read Chinese: Jyutping is part of every result. Preserve meaning, listener and register; keep starter examples clearly distinguishable from generated lessons. The original owner's brief stays local in `CANTO_PROMPT.md`.
 
 ## Code map
 
-- `index.html`: responsive coach, access screen, requests and phrase audio.
-- `src/study.js`: browser phrasebook, Leitner review and pronunciation guides. The build inlines this into the HTML.
-- `api/translate.js`: access check/login, translation, alternatives, comparisons and optional shared practice log. `api/speak.js`: generated speech.
+- `index.html`: responsive coach, access screen, phrase audio, browser phrasebook, flashcards and Jyutping guide.
+- `api/translate.js`: access check/login, translation, alternatives and optional shared practice log. `api/speak.js`: generated speech.
 - `lib/server/`: server-only session, provider, dictionary, audio, built-in examples and Neon access. Never send secret values to browser code or logs.
 - `db/schema.sql` and `scripts/migrate.mjs`: additive practice log migration; no phrase text is stored.
 - `scripts/dev.mjs`: local Node HTTP server; `scripts/build.mjs`: single-file build. `tests/`: server and study tests.

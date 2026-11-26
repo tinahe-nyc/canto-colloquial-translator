@@ -134,15 +134,8 @@
   .mini { display: inline-flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .mini button { font-size: 17px; background: var(--card); color: var(--ink); border: 2px solid var(--ink); border-radius: var(--wob2); padding: 1px 10px; }
   .voicewarn { background: var(--coral-soft); border: 2px dashed var(--ink); border-radius: var(--wob2); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
-  .langs { display: flex; gap: 10px; margin: 0 0 14px; }
-  .langs .lang { flex: 1; border: var(--line); border-radius: var(--wob); background: var(--card); color: var(--ink); padding: 6px 8px; font-size: 20px; }
-  .langs .lang span { font-family: 'Noto Sans SC', sans-serif; font-size: 15px; font-weight: 500; }
-  .langs .lang { font-size: 18px; padding: 5px 4px; }
-  .langhead { font-family: Gaegu, cursive; font-weight: 700; font-size: 26px; margin: -4px 0 8px; }
-  .langhead span { font-family: 'Noto Sans SC', sans-serif; font-size: 16px; font-weight: 500; color: var(--soft); }
   button.ghost.altsbtn { display: flex; align-items: center; gap: 4px; background: var(--tan-soft); }
   button.ghost.altsbtn svg { width: 38px; height: 38px; }
-  .langs .lang.on { color: #1d1b19; background: var(--mint); box-shadow: -4px 3px 0 var(--mint-soft); transform: rotate(-1deg); }
   .pausebtn { color: var(--ink) !important; background: var(--card) !important; box-shadow: none !important; opacity: .8; }
   .pausebtn.live { opacity: 1; color: #1d1b19 !important; background: var(--tan) !important; }
   .alt { margin-bottom: 14px; }
@@ -209,7 +202,6 @@ const D = {
 const LOADING = ['Asking the aunties', 'Picking the comfiest words', 'Skipping the textbook version', 'Warming up the tones', 'Checking how a local says it'];
 const LISTENERS = ['My parents', 'Family', 'Friends', 'Partner', 'Coworker', 'Shop or restaurant', 'Someone new'];
 const LISTENER_IDS = ['parents', 'family', 'friends', 'partner', 'coworker', 'shop', 'stranger'];
-const API_LANG = { yue: 'cantonese', zh: 'mandarin' };
 const STARTERS = ['Have you eaten yet?', "I'm going home now.", "I'm tired."];
 
 function phraseHistory() {
@@ -217,16 +209,15 @@ function phraseHistory() {
   if (Array.isArray(saved)) return saved;
   try {
     const legacy = JSON.parse(localStorage.getItem('kapok.phrasebook.v1')) || [];
-    return legacy.flatMap((entry) => Object.entries(API_LANG).flatMap(([lang, key]) => {
-      const result = entry.results?.[key];
+    return legacy.flatMap((entry) => {
+      const result = entry.results?.cantonese;
       if (!result) return [];
       return [{
         input: entry.english, listener: LISTENERS[LISTENER_IDS.indexOf(entry.listener)] || LISTENERS[0],
         level: entry.style || 'simple', ts: Date.parse(entry.savedAt) || 0,
-        result: { ...result, lang, source: entry.sources?.[key] },
-        ...(entry.results.cantonese && entry.results.mandarin ? { group: entry.id } : {}),
+        result: { ...result, lang: 'yue', source: entry.sources?.cantonese },
       }];
-    }));
+    });
   } catch { return []; }
 }
 
@@ -236,33 +227,26 @@ let state = {
   about: store.get('about', ''),
   history: phraseHistory(),
   result: null, input: '', loading: false, error: '',
-  lang: store.get('lang', 'yue'),
   level: store.get('level', 'simple'),
   view: 'main', deck: store.get('deck', 'lines'), mode: store.get('mode', 'say'), card: null, shown: false,
 };
 try { localStorage.removeItem('canto:code'); } catch {}
 
-const LANG = {
-  yue: { name: 'Cantonese', native: '粤语', roman: 'Jyutping' },
-  zh: { name: 'Mandarin', native: '普通话', roman: 'Pinyin' },
-};
-const SWITCH = { ...LANG, both: { name: 'Both', native: '粤 + 普' } };
-const langOf = (h) => h.result?.lang || 'yue';
-const L = () => SWITCH[state.lang];
-// Phrasebook entries for the current language, keeping their index in the full list
-const myHistory = () => state.history.map((h, i) => ({ h, i })).filter((x) => state.lang === 'both' ? !!x.h.group : langOf(x.h) === state.lang);
+// Keep older entries intact and show the Cantonese line from previously paired lessons.
+const isCantoneseEntry = (entry) => entry?.result && (entry.result.lang ?? 'yue') === 'yue';
+const myHistory = () => state.history.map((h, i) => ({ h, i })).filter(({ h }) => isCantoneseEntry(h));
 
 const audioCache = new Map();
 let current;
 
-async function speak(text, slow, btn, lang = state.lang, useDevice = false) {
-  const key = lang + (slow ? ':slow:' : ':') + text;
+async function speak(text, slow, btn) {
+  const key = (slow ? 'slow:' : 'normal:') + text;
   try {
     if (current) current.pause();
     if (window.speechSynthesis) speechSynthesis.cancel();
-    if (useDevice || !state.authenticated || !state.providerReady) {
-      const voice = localVoice(lang);
-      if (!voice) throw new Error(`Install a ${LANG[lang].name} voice on your device.`);
+    if (!state.authenticated || !state.providerReady) {
+      const voice = localVoice();
+      if (!voice) throw new Error('Install a Cantonese voice on your device.');
       const line = new SpeechSynthesisUtterance(text);
       line.voice = voice;
       line.lang = voice.lang;
@@ -274,7 +258,7 @@ async function speak(text, slow, btn, lang = state.lang, useDevice = false) {
     let url = audioCache.get(key);
     if (!url) {
       if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Loading voice…'; }
-      const r = await fetch('/api/speak', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, slow, language: API_LANG[lang] }) });
+      const r = await fetch('/api/speak', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, slow, language: 'cantonese' }) });
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'voice failed');
       url = URL.createObjectURL(await r.blob());
       audioCache.set(key, url);
@@ -308,8 +292,6 @@ function togglePause() {
 }
 const PAUSE = '<button data-pause class="pausebtn">❚❚ Pause</button>';
 document.addEventListener('click', (e) => { if (e.target.closest('[data-pause]')) togglePause(); });
-
-function goHome() { if (state.home) { state.lang = state.home; state.home = null; } }
 
 function render() {
   const app = $('#app');
@@ -351,11 +333,8 @@ function render() {
     <div class="hero"><img class="brand-flower" src="/kapok-flower.png" width="160" height="179" alt=""><div>
       <h1>Kapok <span>Club</span></h1>
       <p class="tagline">say it like a local</p>
-      <p class="sub">Tell me in English. I'll give you the ${state.lang === 'both' ? 'Cantonese and Mandarin' : L().name} people actually say, how it sounds, and why.</p></div></div>
-    <div class="langs">${Object.entries(SWITCH).map(([k, v]) => `<button class="lang ${k === state.lang ? 'on' : ''}" data-lang="${k}">${v.name} <span>${v.native}</span></button>`).join('')}</div>
-    ${state.lang === 'both'
-      ? `<div class="row" style="margin:0 0 18px">${Object.entries(LANG).map(([k, v]) => `<button class="ghost guide-btn" style="margin:0;flex:1" data-guide="${k}">${v.roman} 101 →</button>`).join('')}</div>`
-      : `<button class="ghost guide-btn" data-guide="${state.lang}">How ${L().roman} works: tones, sounds, spelling →</button>`}
+      <p class="sub">Tell me in English. I'll give you the Cantonese people actually say, how it sounds, and why.</p></div></div>
+    <button class="ghost guide-btn" id="guide">How Jyutping works: tones, sounds, spelling →</button>
 
     <div class="card">
       ${!state.providerReady || !state.authenticated ? `<p class="hint">${state.authenticated ? 'Custom translations are offline. Choose a built-in sample to practice.' : 'Choose a built-in sample to practice.'}</p>` : ''}
@@ -369,7 +348,7 @@ function render() {
       <textarea id="en" rows="4" placeholder="e.g. I've been really tired from work, but I'm happy. I started cooking more, and I want to learn your fish soup recipe.">${esc(state.input)}</textarea>
       <div class="row">
         <button class="ghost" id="mic" title="Speak in English">🎙 Speak</button>
-        <button class="main" id="tr" ${state.loading ? 'disabled' : ''}>${state.loading ? 'Thinking…' : (state.lang === 'both' ? 'Say it both ways!' : `Say it in ${L().name}!`)}</button>
+        <button class="main" id="tr" ${state.loading ? 'disabled' : ''}>${state.loading ? 'Thinking…' : 'Say it in Cantonese!'}</button>
       </div>
       <div class="err">${esc(state.error)}</div>
       <details style="margin-top:12px">
@@ -387,18 +366,13 @@ function render() {
         <label class="small" style="margin:0">Your phrasebook</label>
         <button class="ghost" id="practice" style="background:var(--tan)">Flashcards!</button>
       </div>
-      <ul class="hist">${myHistory().filter(({ h }) => state.lang !== 'both' || langOf(h) === 'yue').map(({ h, i }) => `
-        <li data-i="${i}"><div><div class="zh">${esc(h.result.hanzi)}</div><div class="en">${esc(h.input)} · ${esc(h.listener)}${state.lang === 'both' && pairOf(h) ? ` · ${esc(pairOf(h).result.hanzi)}` : ''}</div></div>
+      <ul class="hist">${myHistory().map(({ h, i }) => `
+        <li data-i="${i}"><div><div class="zh">${esc(h.result.hanzi)}</div><div class="en">${esc(h.input)} · ${esc(h.listener)}</div></div>
         <button class="x" data-del="${i}" title="Remove">×</button></li>`).join('')}
       </ul>
     </div>` : ''}
   `;
 
-  app.querySelectorAll('.lang[data-lang]').forEach((b) => b.onclick = () => {
-    state.lang = b.dataset.lang; store.set('lang', state.lang); state.input = $('#en').value;
-    if (state.result && (state.result.both ? 'both' : state.result.lang || 'yue') !== state.lang) state.result = null;
-    render();
-  });
   app.querySelectorAll('.chip[data-level]').forEach((b) => b.onclick = () => { state.level = b.dataset.level; store.set('level', state.level); state.input = $('#en').value; render(); });
   app.querySelectorAll('.chip[data-l]').forEach((b) => b.onclick = () => { state.listener = b.dataset.l; store.set('listener', state.listener); state.input = $('#en').value; render(); });
   $('#en').oninput = (e) => state.input = e.target.value;
@@ -409,27 +383,26 @@ function render() {
     translate(true);
   });
   $('#back-to-passcode')?.addEventListener('click', () => { state.demo = false; state.error = ''; render(); });
-  // Guides and flashcards work on one language; from Both, borrow one and give Both back on the way out.
-  app.querySelectorAll('[data-guide]').forEach((b) => b.onclick = () => { state.home = state.lang; state.lang = b.dataset.guide; state.view = 'guide'; render(); window.scrollTo(0, 0); });
-  if ($('#practice')) $('#practice').onclick = () => { state.home = state.lang; if (state.lang === 'both') state.lang = 'yue'; state.view = 'practice'; state.card = null; render(); window.scrollTo(0, 0); };
+  $('#guide').onclick = () => { state.view = 'guide'; render(); window.scrollTo(0, 0); };
+  if ($('#practice')) $('#practice').onclick = () => { state.view = 'practice'; state.card = null; render(); window.scrollTo(0, 0); };
   $('#mic').onclick = listen;
   wireResult(app);
   app.querySelectorAll('.hist li').forEach((li) => li.onclick = (e) => {
     if (e.target.dataset.del != null) {
       const gone = state.history[+e.target.dataset.del];
-      state.history = state.history.filter((h) => h !== gone && !(state.lang === 'both' && gone.group && h.group === gone.group));
+      state.history = state.history.filter((h) => h !== gone);
       store.set('history', state.history); render(); return;
     }
     const h = state.history[+li.dataset.i];
-    state.result = state.lang === 'both' ? bothFromGroup(h.group) : h.result;
+    state.result = h.result;
     state.input = h.input; state.listener = h.listener; render();
     window.scrollTo({ top: $('#out').offsetTop - 10, behavior: 'smooth' });
   });
 }
 
-function wordsHTML(words, sl) {
+function wordsHTML(words) {
   return `<div class="words">${(words || []).map((w) => `
-    <div class="w" data-say="${esc(w.trad || w.hanzi)}" data-sl="${sl}">
+    <div class="w" data-say="${esc(w.trad || w.hanzi)}">
       <div class="j">${esc(w.jyutping)}</div>
       <div class="h">${esc(w.hanzi)}</div>
       <div class="m">${esc(w.meaning)}</div>
@@ -444,35 +417,28 @@ function notesHTML(notes) {
       <p>${esc(n.note)}</p>
     </div>`).join('')}</div>`;
 }
-const playRow = (text, sl) => `<div class="play">
-  <button data-say="${esc(text)}" data-sl="${sl}">▶ Hear it</button>
-  <button data-say="${esc(text)}" data-sl="${sl}" data-slow="1">▶ Nice and slow</button>
+const playRow = (text) => `<div class="play">
+  <button data-say="${esc(text)}">▶ Hear it</button>
+  <button data-say="${esc(text)}" data-slow="1">▶ Nice and slow</button>
   ${PAUSE}
 </div>`;
 
 function resultHTML(r) {
   if (!r) return '';
-  if (r.both) return bothHTML(r);
   const pop = state.fresh ? 'result' : '';
   state.fresh = false;
-  return `<div class="card ${pop}">${oneHTML(r)}</div>`;
-}
-
-function oneHTML(r, title = '') {
-  const sl = r.lang || 'yue';
   const alts = r.alts || (r.alt ? [r.alt] : null);
-  return `
-      ${title}
+  return `<div class="card ${pop}">
       ${r.source === 'starter' ? '<p class="hint">Built-in sample lesson</p>' : ''}
       <div class="bubble">
         <p class="line">${esc(r.hanzi)}</p>
         <div class="jp">${esc(r.jyutping)}</div>
       </div>
       <div class="back">“${esc(r.back)}”</div>
-      ${playRow(r.trad || r.hanzi, sl)}
+      ${playRow(r.trad || r.hanzi)}
 
       <h3>${D.frog()} Word by word <span class="hint">tap one to hear it</span></h3>
-      ${wordsHTML(r.words, sl)}
+      ${wordsHTML(r.words)}
 
       ${(r.notes || []).length ? `<h3>${D.cat()} Why it's said this way</h3>${notesHTML(r.notes)}` : ''}
 
@@ -483,37 +449,17 @@ function oneHTML(r, title = '') {
           <div class="jp">${esc(a.jyutping)}</div>
           ${a.back ? `<div class="back" style="margin-top:6px">“${esc(a.back)}”</div>` : ''}
           <div class="hint">${esc(a.why)}</div>
-          ${playRow(a.trad || a.hanzi, sl)}
+          ${playRow(a.trad || a.hanzi)}
           ${(a.words || []).length || (a.notes || []).length ? `<details class="breakdown"><summary>See the breakdown: words and choices</summary>
-            ${(a.words || []).length ? `<div class="sublabel">Word by word</div>${wordsHTML(a.words, sl)}` : ''}
+            ${(a.words || []).length ? `<div class="sublabel">Word by word</div>${wordsHTML(a.words)}` : ''}
             ${(a.notes || []).length ? `<div class="sublabel">What's different and why</div>${notesHTML(a.notes)}` : ''}
           </details>` : ''}
         </div>`).join('')}`
-      : `<div class="row" style="margin-top:20px"><button class="ghost altsbtn" data-alts="${sl}" ${r._altsLoading ? 'disabled' : ''}>${r._altsLoading ? 'Finding other ways…' : `${D.blob()} Show other ways to say it`}</button></div>
+      : `<div class="row" style="margin-top:20px"><button class="ghost altsbtn" id="show-alternatives" ${r._altsLoading ? 'disabled' : ''}>${r._altsLoading ? 'Finding other ways…' : `${D.blob()} Show other ways to say it`}</button></div>
          ${r._altsError ? `<div class="err">${esc(r._altsError)}</div>` : ''}`}
 
-      ${r.tip ? `<div class="tip">${D.mug()}<div><b>Speaking tip:</b> ${esc(r.tip)}</div></div>` : ''}`;
-}
-
-function bothHTML(b) {
-  const pop = state.fresh ? 'result' : '';
-  state.fresh = false;
-  const head = (k) => `<div class="langhead">${LANG[k].name} <span>${LANG[k].native}</span></div>`;
-  return `
-    ${b.yue ? `<div class="card ${pop}">${oneHTML(b.yue, head('yue'))}</div>` : ''}
-    ${b.zh ? `<div class="card ${pop}">${oneHTML(b.zh, head('zh'))}</div>` : ''}
-    <div class="card ${pop}">
-      <h3 style="margin-top:0">${D.cat()} How they differ</h3>
-      ${b.diffs ? b.diffs.map((d) => `<div class="note">${d.yue && d.zh ? `<div class="q"><span class="zh">${esc(d.yue)}</span> vs <span class="zh">${esc(d.zh)}</span></div>` : ''}<p>${esc(d.note)}</p></div>`).join('')
-        : b.diffsError ? `<div class="err">${esc(b.diffsError)}</div>` : '<div class="hint">Comparing the two<span class="dots"></span></div>'}
+      ${r.tip ? `<div class="tip">${D.mug()}<div><b>Speaking tip:</b> ${esc(r.tip)}</div></div>` : ''}
     </div>`;
-}
-
-const pairOf = (h) => h.group && state.history.find((x) => x !== h && x.group === h.group);
-function bothFromGroup(group) {
-  const hs = state.history.filter((h) => h.group === group);
-  const yue = hs.find((h) => langOf(h) === 'yue'), zh = hs.find((h) => langOf(h) === 'zh');
-  return { both: true, yue: yue?.result, zh: zh?.result, diffs: (yue || zh)?.diffs, diffsError: 'No comparison saved for this lesson.', group };
 }
 
 async function post(body) {
@@ -526,11 +472,10 @@ async function post(body) {
 
 async function api(body, starter) {
   if (!starter) return post({ action: 'coach', ...body });
-  const action = body.mode === 'compare' ? 'starter-compare' : body.mode === 'alts' ? 'starter-alternatives' : 'starter';
-  const data = await post({ action, english: body.text, language: API_LANG[body.lang] });
-  if (body.mode === 'compare') return { diffs: [{ note: data.difference }] };
+  const action = body.mode === 'alts' ? 'starter-alternatives' : 'starter';
+  const data = await post({ action, english: body.text, language: 'cantonese' });
   if (body.mode === 'alts') return { alts: data.alternatives };
-  return { ...data.result, lang: body.lang, source: data.source };
+  return { ...data.result, lang: 'yue', source: data.source };
 }
 
 // "Show other ways" is fetched only on request, which keeps each translation about half the price.
@@ -538,7 +483,7 @@ async function loadAlts(r) {
   r._altsLoading = true; r._altsError = ''; render();
   const h = state.history.find((x) => x.result === r);
   try {
-    const j = await api({ mode: 'alts', text: h ? h.input : state.input, listener: h ? h.listener : state.listener, about: state.about, level: h?.level || state.level, lang: r.lang || 'yue', main: r.hanzi }, r.source === 'starter');
+    const j = await api({ mode: 'alts', text: h ? h.input : state.input, listener: h ? h.listener : state.listener, about: state.about, level: h?.level || state.level, main: r.hanzi }, r.source === 'starter');
     r.alts = j.alts;
   } catch (e) {
     r._altsError = e.message;
@@ -548,11 +493,9 @@ async function loadAlts(r) {
 }
 
 function wireResult(root) {
-  root.querySelectorAll('[data-say]').forEach((el) => el.onclick = () => speak(el.dataset.say, !!el.dataset.slow, el.tagName === 'BUTTON' ? el : null, el.dataset.sl || state.lang));
-  root.querySelectorAll('[data-alts]').forEach((el) => el.onclick = () => {
-    const r = state.result.both ? state.result[el.dataset.alts] : state.result;
-    if (r) loadAlts(r);
-  });
+  root.querySelectorAll('[data-say]').forEach((el) => el.onclick = () => speak(el.dataset.say, !!el.dataset.slow, el.tagName === 'BUTTON' ? el : null));
+  const alternatives = root.querySelector('#show-alternatives');
+  if (alternatives) alternatives.onclick = () => loadAlts(state.result);
 }
 
 async function translate(starter = false) {
@@ -564,28 +507,14 @@ async function translate(starter = false) {
     render();
     return;
   }
-  const lang = state.lang;
   state.input = text; state.loading = true; state.error = ''; render();
   const base = { text, listener: state.listener, about: state.about, level: state.level };
-  const save = (result, extra = {}) => state.history.unshift({ input: text, listener: base.listener, level: base.level, result, ts: Date.now(), ...extra });
   try {
-    if (lang !== 'both') {
-      const j = await api({ ...base, lang }, starter);
-      if (state.lang === lang) { state.result = j; state.fresh = true; }
-      save(j);
-    } else {
-      // Each language is written fresh from the English, at the same time, then compared.
-      const [yue, zh] = await Promise.all([api({ ...base, lang: 'yue' }, starter), api({ ...base, lang: 'zh' }, starter)]);
-      const group = Date.now().toString(36);
-      const both = { both: true, yue, zh, group };
-      if (state.lang === lang) { state.result = both; state.fresh = true; }
-      save(zh, { group }); save(yue, { group });
-      try {
-        both.diffs = (await api({ mode: 'compare', text, yue: yue.hanzi, zh: zh.hanzi }, starter)).diffs;
-      } catch (e) { both.diffsError = 'Couldn\'t compare them this time.'; }
-      state.history.filter((h) => h.group === group).forEach((h) => h.diffs = both.diffs);
-    }
-    state.history = state.history.slice(0, 200);
+    const result = await api(base, starter);
+    state.result = result; state.fresh = true;
+    state.history.unshift({ input: text, listener: base.listener, level: base.level, result, ts: Date.now() });
+    let cantoneseCount = 0;
+    state.history = state.history.filter((entry) => !isCantoneseEntry(entry) || ++cantoneseCount <= 200);
     store.set('history', state.history);
   } catch (e) {
     state.error = e.message;
@@ -633,7 +562,7 @@ function cards() {
   }
   return out;
 }
-const key = (c) => (state.lang === 'yue' ? '' : state.lang + '|') + state.mode + '|' + c.id;
+const key = (c) => state.mode + '|' + c.id;
 const prog = (c) => progress[key(c)] || { box: 0, due: 0, isNew: true };
 
 function nextCard(anyway) {
@@ -664,8 +593,7 @@ function renderPractice(app) {
   app.innerHTML = `
     <div class="row" style="margin:0 0 8px"><button class="ghost" id="back">← Back</button></div>
     <div class="hero">${D.frog(state.cheer ? 'yay' : '')}<div><h1>Practice <span>time</span></h1>
-    <p class="sub">${L().name} · ${doneToday() ? `<span class="streak">${doneToday()} done today</span> ` : ''}${dueCount} to practice · ${all.length} ${state.deck === 'lines' ? (all.length === 1 ? 'sentence' : 'sentences') : (all.length === 1 ? 'word' : 'words')} in your phrasebook</p></div></div>
-    ${state.home === 'both' ? `<div class="chips">${tog('lang', 'yue', 'Cantonese')}${tog('lang', 'zh', 'Mandarin')}</div>` : ''}
+    <p class="sub">${doneToday() ? `<span class="streak">${doneToday()} done today</span> ` : ''}${dueCount} to practice · ${all.length} ${state.deck === 'lines' ? (all.length === 1 ? 'sentence' : 'sentences') : (all.length === 1 ? 'word' : 'words')} in your phrasebook</p></div></div>
     <div class="chips">${tog('deck', 'lines', 'Sentences')}${tog('deck', 'words', 'Words')}</div>
     <div class="chips">${tog('mode', 'say', 'Say it (English → Cantonese)')}${tog('mode', 'listen', 'Listen (Cantonese → English)')}</div>
     ${!all.length ? `<div class="card">Nothing here yet. Translate a few things first, and they'll show up as cards.</div>`
@@ -693,8 +621,7 @@ function renderPractice(app) {
       </div>`}
   `;
 
-  $('#back').onclick = () => { state.view = 'main'; goHome(); render(); };
-  app.querySelectorAll('.chip[data-lang]').forEach((b) => b.onclick = () => { state.lang = b.dataset.lang; state.card = null; render(); });
+  $('#back').onclick = () => { state.view = 'main'; render(); };
   app.querySelectorAll('[data-deck]').forEach((b) => b.onclick = () => { state.deck = b.dataset.deck; store.set('deck', state.deck); state.card = null; render(); });
   app.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { state.mode = b.dataset.mode; store.set('mode', state.mode); state.card = null; render(); });
   if ($('#anyway')) $('#anyway').onclick = () => { state.card = nextCard(true); state.shown = false; render(); };
@@ -713,17 +640,12 @@ function renderPractice(app) {
 }
 
 
-// ---------- Jyutping 101 and Pinyin 101 ----------
+// ---------- Jyutping 101 ----------
 // Tone samples use the device's own voice (dictionary-based, so single syllables get the right tone).
 // The AI voice is great for sentences but unreliable on lone syllables.
-const VOICE_MATCH = {
-  yue: [/yue|zh[-_]HK/i, /cantonese|粤|粵|sinji/i],
-  zh: [/^zh[-_](CN|Hans)|cmn/i, /mandarin|普通话|tingting|lili|yaoyao|huihui/i],
-};
-function localVoice(lang = state.lang) {
+function localVoice() {
   const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
-  const [byLang, byName] = VOICE_MATCH[lang];
-  return vs.find((v) => byLang.test(v.lang)) || vs.find((v) => byName.test(v.name));
+  return vs.find((v) => /yue|zh[-_]HK/i.test(v.lang)) || vs.find((v) => /cantonese|粤|粵|sinji/i.test(v.name));
 }
 if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { if (state.view === 'guide') render(); };
 function sayLocal(text, rate = 0.75) {
@@ -748,135 +670,63 @@ function sayAll(chars, i = 0) {
 }
 
 // Pitch on a 1 (low) to 5 (high) scale through the syllable, the standard way linguists describe tones.
-const GUIDES = {
-  yue: {
-    title: 'Jyutping', mascot: 'cat',
-    intro: 'The spelling system for Cantonese sounds. Every syllable is letters plus a tone number: <b>si3</b> = "si" said in tone 3.',
-    voiceTip: `this device doesn't have a Cantonese voice yet, so you'll hear the AI voice instead. On iPhone go to <i>Settings → Accessibility → Spoken Content → Voices → Chinese (Hong Kong)</i> and download one (Sinji is good). On a Mac it's <i>System Settings → Accessibility → Spoken Content</i>.`,
-    count: 'six',
-    tones: [
-      { n: 1, name: 'high, flat', pitch: [5, 5], color: 'var(--coral)', like: 'like holding a high note' },
-      { n: 2, name: 'rising', pitch: [3, 5], color: 'var(--tan)', like: 'like asking "huh?"' },
-      { n: 3, name: 'mid, flat', pitch: [3, 3], color: 'var(--mint)', like: 'your normal talking voice' },
-      { n: 4, name: 'low, falling', pitch: [2, 1], color: 'var(--blue)', like: 'like a tired sigh' },
-      { n: 5, name: 'low rising', pitch: [2, 3], color: 'var(--pink)', like: 'a small, lazy rise' },
-      { n: 6, name: 'low, flat', pitch: [2, 2], color: '#b9a4d8', like: 'flat, just below normal' },
-    ],
-    sets: {
-      si: { roman: ['si1', 'si2', 'si3', 'si4', 'si5', 'si6'], chars: ['诗', '史', '试', '时', '市', '事'], say: ['詩', '史', '試', '時', '市', '事'], mean: ['poem', 'history', 'try', 'time', 'market', 'thing'] },
-      fan: { roman: ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6'], chars: ['分', '粉', '瞓', '坟', '愤', '份'], say: ['分', '粉', '瞓', '墳', '憤', '份'], mean: ['minute', 'powder', 'sleep', 'grave', 'angry', 'portion'] },
-      ji: { roman: ['ji1', 'ji2', 'ji3', 'ji4', 'ji5', 'ji6'], chars: ['衣', '椅', '意', '儿', '耳', '二'], say: ['衣', '椅', '意', '兒', '耳', '二'], mean: ['clothes', 'chair', 'meaning', 'child', 'ear', 'two'] },
-    },
-    pairsTitle: 'Pairs people mix up',
-    pairs: [
-      ['3 vs 6:', 'both flat. 6 sits a little lower, just under your normal voice.', [['試', '试 si3 try'], ['事', '事 si6 thing']]],
-      ['2 vs 5:', 'both rise. 2 rises big and high, 5 starts low and only rises a bit.', [['史', '史 si2 history'], ['市', '市 si5 market']]],
-      ['4 vs 6:', 'both low. 4 sinks at the end, like a sigh.', [['時', '时 si4 time'], ['事', '事 si6 thing']]],
-      ['Short syllables:', 'ones ending in p, t or k are clipped short, and only use tones 1, 3 and 6.', [['色', '色 sik1 colour'], ['錫', '锡 sek3 kiss (slang)'], ['食', '食 sik6 eat']]],
-    ],
-    cheat: [
-      ['j', 'sounds like English <b>y</b>', '有', 'jau5', 'have'],
-      ['z', 'between <b>dz</b> and <b>j</b>', '早', 'zou2', 'early'],
-      ['c', 'like <b>ts</b> or <b>ch</b>', '茶', 'caa4', 'tea'],
-      ['ng', 'the <b>ng</b> in "sing", at the start', '我', 'ngo5', 'I, me'],
-      ['gw / kw', 'like <b>Gw</b>en, <b>qu</b>een', '挂', 'gwaa3', 'hang'],
-      ['aa', 'long <b>ah</b>', '街', 'gaai1', 'street'],
-      ['a', 'short <b>uh</b>, quicker', '鸡', 'gai1', 'chicken'],
-      ['eo / oe', '<b>er</b> with rounded lips', '佢', 'keoi5', 'he, she'],
-      ['yu', 'say <b>ee</b> with rounded lips', '鱼', 'jyu4', 'fish'],
-      ['-p -t -k', 'close your mouth for it, but no puff of air', '食', 'sik6', 'eat'],
-      ['m', 'just a hum, a whole syllable', '唔', 'm4', 'not'],
-    ],
+const JYUTPING = {
+  title: 'Jyutping', mascot: 'cat',
+  intro: 'The spelling system for Cantonese sounds. Every syllable is letters plus a tone number: <b>si3</b> = "si" said in tone 3.',
+  voiceTip: `Install a Cantonese voice for clearer tone samples. On iPhone go to <i>Settings → Accessibility → Spoken Content → Voices → Chinese (Hong Kong)</i> and download one (Sinji is good). On a Mac it's <i>System Settings → Accessibility → Spoken Content</i>.`,
+  count: 'six',
+  tones: [
+    { n: 1, name: 'high, flat', pitch: [5, 5], color: 'var(--coral)', like: 'like holding a high note' },
+    { n: 2, name: 'rising', pitch: [3, 5], color: 'var(--tan)', like: 'like asking "huh?"' },
+    { n: 3, name: 'mid, flat', pitch: [3, 3], color: 'var(--mint)', like: 'your normal talking voice' },
+    { n: 4, name: 'low, falling', pitch: [2, 1], color: 'var(--blue)', like: 'like a tired sigh' },
+    { n: 5, name: 'low rising', pitch: [2, 3], color: 'var(--pink)', like: 'a small, lazy rise' },
+    { n: 6, name: 'low, flat', pitch: [2, 2], color: '#b9a4d8', like: 'flat, just below normal' },
+  ],
+  sets: {
+    si: { roman: ['si1', 'si2', 'si3', 'si4', 'si5', 'si6'], chars: ['诗', '史', '试', '时', '市', '事'], say: ['詩', '史', '試', '時', '市', '事'], mean: ['poem', 'history', 'try', 'time', 'market', 'thing'] },
+    fan: { roman: ['fan1', 'fan2', 'fan3', 'fan4', 'fan5', 'fan6'], chars: ['分', '粉', '瞓', '坟', '愤', '份'], say: ['分', '粉', '瞓', '墳', '憤', '份'], mean: ['minute', 'powder', 'sleep', 'grave', 'angry', 'portion'] },
+    ji: { roman: ['ji1', 'ji2', 'ji3', 'ji4', 'ji5', 'ji6'], chars: ['衣', '椅', '意', '儿', '耳', '二'], say: ['衣', '椅', '意', '兒', '耳', '二'], mean: ['clothes', 'chair', 'meaning', 'child', 'ear', 'two'] },
   },
-  zh: {
-    title: 'Pinyin', mascot: 'frog',
-    intro: 'The spelling system for Mandarin sounds. The tone is the little mark over the vowel: <b>mā má mǎ mà</b>, plus a light, unmarked <b>ma</b>.',
-    voiceTip: `this device doesn't have a Mandarin voice yet, so you'll hear the AI voice instead. On iPhone go to <i>Settings → Accessibility → Spoken Content → Voices → Chinese (China mainland)</i> and download one. On a Mac it's <i>System Settings → Accessibility → Spoken Content</i>.`,
-    count: 'four',
-    tones: [
-      { n: 1, mark: 'ā', name: 'high, flat', pitch: [5, 5], color: 'var(--coral)', like: 'like holding a high note' },
-      { n: 2, mark: 'á', name: 'rising', pitch: [3, 5], color: 'var(--tan)', like: 'like asking "what?"' },
-      { n: 3, mark: 'ǎ', name: 'dipping', pitch: [2, 1, 4], color: 'var(--mint)', like: 'dips low then up. In normal speech it mostly just stays low' },
-      { n: 4, mark: 'à', name: 'falling', pitch: [5, 1], color: 'var(--blue)', like: 'a sharp drop, like a firm "No!"' },
-      { n: 5, mark: 'a', name: 'light (neutral)', pitch: null, color: '#b9a4d8', like: 'short and soft, no tone of its own' },
-    ],
-    sets: {
-      ma: { roman: ['mā', 'má', 'mǎ', 'mà', 'ma'], chars: ['妈', '麻', '马', '骂', '吗'], say: ['妈', '麻', '马', '骂', '吗'], mean: ['mum', 'numb', 'horse', 'scold', '? particle'] },
-      shi: { roman: ['shī', 'shí', 'shǐ', 'shì', ''], chars: ['诗', '时', '史', '是', ''], say: ['诗', '时', '史', '是', ''], mean: ['poem', 'time', 'history', 'is, yes', ''] },
-      yi: { roman: ['yī', 'yí', 'yǐ', 'yì', ''], chars: ['衣', '姨', '椅', '意', ''], say: ['衣', '姨', '椅', '意', ''], mean: ['clothes', 'aunt', 'chair', 'meaning', ''] },
-    },
-    pairsTitle: 'Tricky bits',
-    pairs: [
-      ['2 vs 3:', '2 goes straight up. 3 dips low first, and in a sentence often just stays low.', [['时', '时 shí time'], ['史', '史 shǐ history']]],
-      ['Two 3s in a row:', 'the first one turns into a 2. You still write it as 3.', [['你好', '你好 nǐ hǎo → ní hǎo'], ['很好', '很好 hěn hǎo → hén hǎo']]],
-      ['不 bù:', 'becomes bú before a tone 4.', [['不是', '不是 bú shì not'], ['不好', '不好 bù hǎo not good']]],
-      ['一 yī:', 'becomes yí before tone 4, and yì before the others. Alone or counting, it stays yī.', [['一个', '一个 yí gè one (of)'], ['一起', '一起 yì qǐ together']]],
-      ['Coming from Cantonese:', 'Mandarin has no p, t or k endings, and the same character often has a different tone.', [['吃', '吃 chī eat (食 sik6)'], ['十', '十 shí ten (sap6)'], ['诗', '诗 shī poem (si1)']]],
-      ['n vs ng:', 'the ending changes the word, so let it ring for ng.', [['心', '心 xīn heart'], ['星', '星 xīng star']]],
-    ],
-    cheat: [
-      ['q', 'like <b>ch</b> in "cheek", lips spread', '去', 'qù', 'go'],
-      ['x', 'between <b>s</b> and <b>sh</b>, smiling', '小', 'xiǎo', 'small'],
-      ['j', 'like <b>j</b> in "jeep", lips spread', '家', 'jiā', 'home'],
-      ['zh', '<b>j</b> with the tongue curled back', '中', 'zhōng', 'middle'],
-      ['ch', '<b>ch</b> with the tongue curled back', '吃', 'chī', 'eat'],
-      ['sh', '<b>sh</b> with the tongue curled back', '是', 'shì', 'is, yes'],
-      ['r', 'like the <b>s</b> in "pleasure", tongue curled', '人', 'rén', 'person'],
-      ['z / c', '<b>dz</b> / <b>ts</b> as in "cats"', '菜', 'cài', 'food, veg'],
-      ['ü (yu)', 'say <b>ee</b> with rounded lips', '鱼', 'yú', 'fish'],
-      ['e', '<b>uh</b> from the back of the throat', '饿', 'è', 'hungry'],
-      ['-i after s, sh...', 'not "ee": a buzzy, held <b>zzz</b>', '四', 'sì', 'four'],
-      ['ui / iu', '<b>way</b> / <b>yo</b>', '六', 'liù', 'six'],
-      ['ian', 'like <b>yen</b>', '天', 'tiān', 'sky, day'],
-    ],
-  },
+  pairsTitle: 'Pairs people mix up',
+  pairs: [
+    ['3 vs 6:', 'both flat. 6 sits a little lower, just under your normal voice.', [['試', '试 si3 try'], ['事', '事 si6 thing']]],
+    ['2 vs 5:', 'both rise. 2 rises big and high, 5 starts low and only rises a bit.', [['史', '史 si2 history'], ['市', '市 si5 market']]],
+    ['4 vs 6:', 'both low. 4 sinks at the end, like a sigh.', [['時', '时 si4 time'], ['事', '事 si6 thing']]],
+    ['Short syllables:', 'ones ending in p, t or k are clipped short, and only use tones 1, 3 and 6.', [['色', '色 sik1 colour'], ['錫', '锡 sek3 kiss (slang)'], ['食', '食 sik6 eat']]],
+  ],
+  cheat: [
+    ['j', 'sounds like English <b>y</b>', '有', 'jau5', 'have'],
+    ['z', 'between <b>dz</b> and <b>j</b>', '早', 'zou2', 'early'],
+    ['c', 'like <b>ts</b> or <b>ch</b>', '茶', 'caa4', 'tea'],
+    ['ng', 'the <b>ng</b> in "sing", at the start', '我', 'ngo5', 'I, me'],
+    ['gw / kw', 'like <b>Gw</b>en, <b>qu</b>een', '挂', 'gwaa3', 'hang'],
+    ['aa', 'long <b>ah</b>', '街', 'gaai1', 'street'],
+    ['a', 'short <b>uh</b>, quicker', '鸡', 'gai1', 'chicken'],
+    ['eo / oe', '<b>er</b> with rounded lips', '佢', 'keoi5', 'he, she'],
+    ['yu', 'say <b>ee</b> with rounded lips', '鱼', 'jyu4', 'fish'],
+    ['-p -t -k', 'close your mouth for it, but no puff of air', '食', 'sik6', 'eat'],
+    ['m', 'just a hum, a whole syllable', '唔', 'm4', 'not'],
+  ],
 };
-const G = () => GUIDES[state.lang];
-const gset = () => { const g = G(); return g.sets[state.set in g.sets ? state.set : Object.keys(g.sets)[0]]; };
+const gset = () => JYUTPING.sets[state.set] || JYUTPING.sets.si;
 
 function chartSVG() {
-  const g = G(), set = gset();
+  const g = JYUTPING, set = gset();
   const W = 340, H = 220, L = 46, R = 300, y = (p) => 196 - (p - 1) * 42;
   const grid = [1, 2, 3, 4, 5].map((p) => `<line class="grid" x1="${L}" x2="${R}" y1="${y(p)}" y2="${y(p)}"/>`).join('');
   const labels = `<text x="6" y="${y(5) + 6}" font-size="17">high</text><text x="6" y="${y(1) + 6}" font-size="17">low</text>`;
-  if (g.count === 'four') return panelsSVG(g, set);
   const lines = g.tones.filter((t) => set.chars[t.n - 1]).map((t) => {
     const on = state.hot === t.n ? 'on' : '';
-    const tag = (x, yy) => `<text x="${x}" y="${yy}" font-size="24" data-tone="${t.n}" style="cursor:pointer">${t.mark || t.n}</text>`;
-    if (!t.pitch) { // light tone: a short dot-like dash
-      const x = R - 70, yy = y(2.3);
-      return `<path class="tl ${on}" data-tone="${t.n}" stroke="${t.color}" d="M${x} ${yy} L${x + 14} ${yy}"/>${tag(x - 4, yy - 12)}`;
-    }
-    const p = t.pitch, rises = p[p.length - 1] > p[0];
-    if (p.length === 3) { // dipping tone: down to the bottom, then back up
-      const x1 = L + 40, x2 = R - 110, xm = (x1 + x2) / 2;
-      return `<path class="tl ${on}" data-tone="${t.n}" stroke="${t.color}" d="M${x1} ${y(p[0])} Q${xm} ${y(p[1]) + 34} ${x2} ${y(p[2])}"/>${tag(x2 + 8, y(p[2]) + 6)}`;
-    }
+    const tag = (x, yy) => `<text x="${x}" y="${yy}" font-size="24" data-tone="${t.n}" style="cursor:pointer">${t.n}</text>`;
+    const p = t.pitch, rises = p[1] > p[0];
     // risers stop short so their labels don't sit on top of the flat tones' labels
-    const x1 = L + 14, x2 = rises ? R - 80 : R - 20, off = (g.count === 'six' && t.n === 6 ? 6 : g.count === 'six' && t.n === 4 ? -3 : 0);
+    const x1 = L + 14, x2 = rises ? R - 80 : R - 20, off = (t.n === 6 ? 6 : t.n === 4 ? -3 : 0);
     const ya = y(p[0]) + off, yb = y(p[1]) + off;
     const mid = `${(x1 + x2) / 2} ${(ya + yb) / 2 + (p[0] === p[1] ? 0 : rises ? 10 : -6)}`;
     return `<path class="tl ${on}" data-tone="${t.n}" stroke="${t.color}" d="M${x1} ${ya} Q${mid} ${x2} ${yb}"/>${rises ? tag(x2 - 4, yb - 12) : tag(x2 + 12, yb + 8)}`;
   }).join('');
   return `<svg class="tonechart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Pitch of the ${g.title} tones">${grid}${labels}${lines}</svg>`;
-}
-// Mandarin: one small panel per tone, since the falling 4 and dipping 3 cross everything when overlaid.
-function panelsSVG(g, set) {
-  const tones = g.tones.filter((t) => set.chars[t.n - 1]);
-  const pw = 64, gap = 6, W = tones.length * (pw + gap), y = (p) => 150 - (p - 1) * 30;
-  const panels = tones.map((t, i) => {
-    const x0 = i * (pw + gap), on = state.hot === t.n ? 'on' : '';
-    const grid = [1, 2, 3, 4, 5].map((p) => `<line class="grid" x1="${x0 + 4}" x2="${x0 + pw - 4}" y1="${y(p)}" y2="${y(p)}"/>`).join('');
-    let d;
-    if (!t.pitch) d = `M${x0 + 26} ${y(2.3)} L${x0 + 38} ${y(2.3)}`;
-    else if (t.pitch.length === 3) d = `M${x0 + 10} ${y(t.pitch[0])} Q${x0 + 26} ${y(t.pitch[1]) + 30} ${x0 + 54} ${y(t.pitch[2])}`;
-    else d = `M${x0 + 10} ${y(t.pitch[0])} Q${x0 + 32} ${(y(t.pitch[0]) + y(t.pitch[1])) / 2 + (t.pitch[1] > t.pitch[0] ? 8 : t.pitch[1] < t.pitch[0] ? -8 : 0)} ${x0 + 54} ${y(t.pitch[1])}`;
-    return `<g data-tone="${t.n}" style="cursor:pointer"><rect x="${x0}" y="20" width="${pw}" height="150" fill="transparent"/>${grid}
-      <path class="tl ${on}" stroke="${t.color}" d="${d}"/>
-      <text x="${x0 + pw / 2}" y="${y(1) + 30}" font-size="22" text-anchor="middle">${esc(set.roman[t.n - 1] || t.mark)}</text></g>`;
-  }).join('');
-  return `<svg class="tonechart" viewBox="-4 10 ${W + 4} 180" role="img" aria-label="Pitch of the ${g.title} tones">
-    <text x="0" y="${y(5) - 8}" font-size="15">high</text>${panels}</svg>`;
 }
 function drawChart() { const el = $('#chart'); if (el) { el.innerHTML = chartSVG(); wireChart(); } }
 function wireChart() {
@@ -885,7 +735,7 @@ function wireChart() {
 }
 
 function renderGuide(app) {
-  const g = G(), set = gset(), setKey = Object.keys(g.sets).find((k) => g.sets[k] === set);
+  const g = JYUTPING, set = gset(), setKey = Object.keys(g.sets).find((k) => g.sets[k] === set);
   const tones = g.tones.filter((t) => set.chars[t.n - 1]);
   app.innerHTML = `
     <div class="row" style="margin:0 0 8px"><button class="ghost" id="back">← Back</button></div>
@@ -902,7 +752,7 @@ function renderGuide(app) {
       <div class="play" style="margin-top:4px"><button id="playall">▶ Play them all</button>${PAUSE}</div>
       <div class="tones" style="margin-top:12px">${tones.map((t) => `
         <div class="tone" data-say="${set.say[t.n - 1]}" data-n="${t.n}">
-          <div class="n"><span class="sw" style="background:${t.color}"></span>${t.pitch ? `Tone ${t.n}` : 'Light tone'}</div>
+          <div class="n"><span class="sw" style="background:${t.color}"></span>Tone ${t.n}</div>
           <div class="hint" style="margin:0">${t.name}, ${t.like}</div>
           <div class="ex">${set.chars[t.n - 1]} <small>${set.roman[t.n - 1]} · ${set.mean[t.n - 1]}</small></div>
         </div>`).join('')}
@@ -925,7 +775,7 @@ function renderGuide(app) {
 
     <div class="tip">${D.mug()}<div><b>How to practice:</b> pick a word, say it, then tap to compare. Tones are about how your voice <i>moves</i> compared with your normal pitch, not about hitting exact notes.</div></div>
   `;
-  $('#back').onclick = () => { state.view = 'main'; state.hot = 0; goHome(); render(); };
+  $('#back').onclick = () => { state.view = 'main'; state.hot = 0; render(); };
   app.querySelectorAll('[data-set]').forEach((b) => b.onclick = () => { state.set = b.dataset.set; render(); });
   app.querySelectorAll('[data-say]').forEach((el) => el.onclick = () => {
     if (el.dataset.n) { state.hot = +el.dataset.n; drawChart(); }
