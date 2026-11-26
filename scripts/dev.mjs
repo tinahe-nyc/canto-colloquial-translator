@@ -9,7 +9,7 @@ const port = Number(process.env.PORT || 3000);
 const routes = { '/api/translate': translate, '/api/speak': speak };
 const assets = {'/': [built ? 'dist/index.html':'index.html','text/html'], '/index.html':[built ? 'dist/index.html':'index.html','text/html']};
 if (!built) assets['/src/study.js'] = ['src/study.js','text/javascript'];
-for (const name of ['manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png']) {
+for (const name of ['manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','kapok-flower.png']) {
   assets['/' + name] = [(built ? 'dist/' : 'public-assets/') + name,
     name.endsWith('.png') ? 'image/png' : 'application/manifest+json'];
 }

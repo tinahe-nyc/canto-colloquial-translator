@@ -31,6 +31,8 @@
   h1 span { color: var(--coral); }
   .hero { display: flex; align-items: center; gap: 6px; margin: 4px 0 14px; }
   .hero svg { width: 80px; height: 80px; flex: none; }
+  .brand-flower { display: block; height: auto; flex: none; border-radius: 18%; }
+  .hero .brand-flower { width: 76px; margin-right: 8px; }
   .tagline { margin: 4px 0 0; font: 700 23px/1.1 Gaegu, 'Comic Sans MS', cursive; }
   .sub { color: var(--soft); margin: 6px 0 0; font-size: 15px; }
   .card { background: var(--card); border: var(--line); border-radius: var(--wob); padding: 16px; margin-bottom: 18px; position: relative; }
@@ -100,7 +102,7 @@
   .hist .zh { font-family: 'Noto Sans SC', sans-serif; }
   .hist .x { color: var(--soft); background: none; border: 0; font-size: 22px; padding: 0 4px; }
   .gate { max-width: 360px; margin: 40px auto; text-align: center; }
-  .gate svg { width: 130px; height: 130px; }
+  .gate .brand-flower { width: 112px; margin: 0 auto 10px; }
   .flash { text-align: center; padding: 22px 16px; }
   .flash .mascot { width: 84px; height: 84px; }
   .flash .prompt { font-family: Gaegu, cursive; font-size: 28px; font-weight: 700; line-height: 1.2; margin: 6px 0; }
@@ -154,8 +156,6 @@
   .doodle .ink { fill: none; stroke: var(--ink); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#wob); }
   .doodle .dot { fill: var(--ink); stroke: none; }
   .wave { transform-origin: 76px 56px; animation: wave 1.6s ease-in-out infinite; }
-  .bloom { animation: bloom 3s ease-in-out infinite; }
-  @keyframes bloom { 50% { transform: rotate(10deg) scale(1.04); } }
   @keyframes wave { 50% { transform: rotate(-14deg); } }
   .steam { animation: steam 2.4s ease-in-out infinite; }
   @keyframes steam { 50% { transform: translateY(-3px); opacity: .5; } }
@@ -176,12 +176,6 @@ const store = {
 // ---------- Doodles (hand-drawn style: pastel fill printed a little off, wobbly ink on top) ----------
 const svg = (body, cls = '') => `<svg class="doodle ${cls}" viewBox="0 0 100 100" aria-hidden="true">${body}</svg>`;
 const D = {
-  // Kapok (木棉), the city flower
-  flower: (c = '') => svg(`
-    <g fill="var(--coral)" transform="translate(-3 3)">${[0, 72, 144, 216, 288].map((a) => `<ellipse cx="50" cy="31" rx="13" ry="20" transform="rotate(${a} 50 52)"/>`).join('')}</g>
-    <g class="ink">${[0, 72, 144, 216, 288].map((a) => `<path d="M43 46 C34 30 40 12 50 11 C60 12 66 30 57 46" transform="rotate(${a} 50 52)"/>`).join('')}</g>
-    <circle cx="50" cy="52" r="11" fill="var(--tan)"/><g class="ink"><circle cx="50" cy="52" r="11"/><path d="M46 56 Q50 59 54 56" style="stroke:#1d1b19;stroke-width:3"/></g>
-    <circle cx="46" cy="50" r="2.4" fill="#1d1b19"/><circle cx="54" cy="50" r="2.4" fill="#1d1b19"/>`, c),
   blob: (c = '') => svg(`
     <path d="M30 82 C16 58 20 24 50 21 C80 24 84 58 72 82 Z" fill="var(--coral)" transform="translate(-4 3)"/>
     <g class="ink"><path d="M30 82 C16 58 20 24 50 21 C80 24 84 58 72 82 Z"/>
@@ -326,7 +320,7 @@ function render() {
   if (!canEnter) {
     app.innerHTML = `
       <div class="gate">
-        ${D.blob()}
+        <img class="brand-flower" src="/kapok-flower.png" width="160" height="179" alt="">
         <h1>Kapok <span>Club</span></h1>
         <p class="tagline">say it like a local</p>
         <p class="sub">Try a sample lesson or enter the friends passcode.</p>
@@ -354,7 +348,7 @@ function render() {
   }
 
   app.innerHTML = `
-    <div class="hero">${D.flower('bloom')}<div>
+    <div class="hero"><img class="brand-flower" src="/kapok-flower.png" width="160" height="179" alt=""><div>
       <h1>Kapok <span>Club</span></h1>
       <p class="tagline">say it like a local</p>
       <p class="sub">Tell me in English. I'll give you the ${state.lang === 'both' ? 'Cantonese and Mandarin' : L().name} people actually say, how it sounds, and why.</p></div></div>

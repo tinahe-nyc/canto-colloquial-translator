@@ -8,7 +8,7 @@ for (const match of page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi))
 }
 await mkdir(new URL('dist/', root), {recursive:true});
 await writeFile(new URL('dist/index.html', root), page);
-for (const file of ['manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png']) {
+for (const file of ['manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','kapok-flower.png']) {
   await copyFile(new URL('public-assets/' + file, root), new URL('dist/' + file, root));
 }
 console.log('Built the speaking coach in dist/index.html.');
