@@ -1,4 +1,4 @@
-# Kapok Club
+# Say It Like a Local
 
 [Open the speaking coach](https://canto-colloquial-translator.vercel.app). On iPhone, open the link in Safari, tap **Share → Add to Home Screen**, then **Add**. This is a web app, not an App Store listing. A network connection is needed to fetch lessons.
 
@@ -16,7 +16,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open http://127.0.0.1:3000. Guests can use the three starter lessons, guides, phrasebook, and flashcards without a passcode or API key. To try the members' options, use the **APP_PASSCODE** entry of the ignored local `.env.local`. On another checkout, create `.env.local` from `.env.example` and set your own values. Skip the migration if you don't need the practice log.
+Open http://127.0.0.1:3000. Guests can use the three starter lessons, guides, phrasebook, and flashcards without a passcode or API key. To try custom lessons, create `.env.local` from `.env.example` and set a passcode and an OpenRouter key. The current interface does not use the shared practice log, so the database migration is optional.
 
 - `APP_PASSCODE`: shared access code. Changing it invalidates existing sessions.
 - `DATABASE_URL`: Neon connection for the optional practice log. The migration creates the table if needed; running it again preserves existing entries.
@@ -26,9 +26,9 @@ Open http://127.0.0.1:3000. Guests can use the three starter lessons, guides, ph
 
 ## Practice and privacy
 
-Your phrasebook and flashcard progress stay in this browser profile. Clearing its site data removes them. Each newly generated lesson is saved locally. For AI lessons, the server sends the requested phrase to OpenRouter; generated audio sends the chosen Chinese script. A device or browser's speech recognition may use its own speech service. Avoid entering information you wouldn't want sent to these services.
+Your phrasebook and flashcard progress stay in this browser profile. Clearing its site data removes them. Each lesson is saved locally. The coach can read saved Kapok Club phrases on the same browser. Review schedules start fresh in the new flashcards. For AI lessons, the server sends the requested phrase, listener, and any context you enter to OpenRouter. Generated audio sends the chosen Chinese script. A device or browser's speech recognition may use its own speech service.
 
-**Log practice** saves only the language, timestamp and a random ID to the shared club log. Recent activity shows the last ten entries. It does not store your phrasebook, English input, passcode, or a name in Postgres. The passcode is shared by friends; there are no separate accounts. Set a spending limit on the OpenRouter key when enabling it; the server's request limits apply per instance.
+Friends use a shared passcode and a signed session cookie. Set a spending limit on the OpenRouter key when enabling it. The server's request limits apply per instance.
 
 ## Verify and release
 

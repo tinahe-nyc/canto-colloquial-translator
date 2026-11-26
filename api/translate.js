@@ -3,6 +3,7 @@ import {
   sendError, sendJson, session, throttle,
 } from '../lib/server/http.js';
 import { generate } from '../lib/server/openrouter.js';
+import { localCoach } from '../lib/server/local-coach.js';
 import { starterLesson, starterPhrases } from '../lib/server/starters.js';
 import { recordPractice, recentPractice } from '../lib/server/practice.js';
 
@@ -57,6 +58,10 @@ export default async function translate(req, res) {
       return sendJson(res, 200, status(true));
     }
     const id = requireSession(req);
+    if (body.action === 'coach') {
+      throttle('text:' + id, 60, 10 * 60000);
+      return sendJson(res, 200, await localCoach(body));
+    }
     if (body.action === 'practice') {
       const lang = language(body.language);
       throttle('practice:' + id, 60, 10 * 60000);

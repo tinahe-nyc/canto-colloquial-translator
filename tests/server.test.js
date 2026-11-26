@@ -112,6 +112,30 @@ test('an incomplete provider lesson retries once, repairs syntax, and fixes read
   assert.equal(res.data.result.jyutping.split(' ')[0], 'nei5');
 });
 
+test('the new coach uses the existing session and reports the cost of both generation attempts', async t => {
+  const cookie = await withServer(t, true);
+  const lesson = structuredClone(starterLesson(starterPhrases[0]).cantonese[0]);
+  lesson.words[0].jyutping = 'wrong1';
+  lesson.jyutping = lesson.jyutping.replace('nei5', 'wrong1');
+  const answers = ['{"words":[]}', JSON.stringify(lesson)];
+  const network = t.mock.method(globalThis, 'fetch', async (_url, init) => {
+    const request = JSON.parse(init.body);
+    assert.match(request.messages[1].content, /Keep the context/);
+    return Response.json({
+      choices: [{ message: { content: answers.shift() } }], usage: { cost: 0.01 },
+    });
+  });
+  const input = { action: 'coach', text: 'Have you eaten yet?', lang: 'yue', about: 'Keep the context' };
+  assert.equal((await call(translate, input)).status, 401);
+  assert.equal(network.mock.callCount(), 0);
+  const response = await call(translate, input, cookie);
+  assert.equal(response.status, 200);
+  assert.equal(response.data.lang, 'yue');
+  assert.equal(response.data.jyutping.split(' ')[0], 'nei5');
+  assert.equal(response.data.cost, 0.02);
+  assert.equal(network.mock.callCount(), 2);
+});
+
 test('audio endpoint reconstructs SSE fragments and sends sized, playable PCM WAV', async t => {
   const cookie = await withServer(t, true);
   const audio = Buffer.from([0, 1, 2, 3, 4, 5, 6, 7]);
