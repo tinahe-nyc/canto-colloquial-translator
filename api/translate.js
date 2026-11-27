@@ -4,6 +4,7 @@ import {
 } from '../lib/server/http.js';
 import { generate } from '../lib/server/openrouter.js';
 import { localCoach } from '../lib/server/local-coach.js';
+import { providerStatus } from '../lib/server/providers.js';
 import { starterLesson, starterPhrases } from '../lib/server/starters.js';
 import { recordPractice, recentPractice } from '../lib/server/practice.js';
 
@@ -13,7 +14,7 @@ const publicLessons = new Map([
 ]);
 
 function status(authenticated) {
-  return { authenticated, providerReady: Boolean(process.env.OPENROUTER_API_KEY), starterPhrases };
+  return { authenticated, ...providerStatus(), starterPhrases };
 }
 
 function lineText(value) {
@@ -66,9 +67,9 @@ export default async function translate(req, res) {
     }
     if (body.action === 'recent-practice') return sendJson(res, 200, { entries: await recentPractice() });
     const input = translationInput(body);
-    if (!process.env.OPENROUTER_API_KEY) {
+    if (!providerStatus().providerReady) {
       const lesson = starterLesson(input.english);
-      if (!lesson) throw new ClientError(503, 'Custom phrases need OpenRouter. Choose one of the three starter phrases for now.');
+      if (!lesson) throw new ClientError(503, 'Custom phrases need a translation provider. Choose one of the three starter phrases for now.');
       return sendJson(res, 200, starterResponse(input.action, lesson));
     }
     throttle('text:' + id, 60, 10 * 60000);

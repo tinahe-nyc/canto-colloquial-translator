@@ -17,14 +17,18 @@ function call(handler, data, cookie = '', method = 'POST') {
 }
 
 async function withServer(t, providerReady = false) {
-  const old = { passcode: process.env.APP_PASSCODE, key: process.env.OPENROUTER_API_KEY };
+  const envKeys = ['APP_PASSCODE', 'OPENROUTER_API_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_TEXT_MODEL'];
+  const old = envKeys.map(key => [key, process.env[key]]);
   const code = randomUUID();
   process.env.APP_PASSCODE = code;
-  if (providerReady) process.env.OPENROUTER_API_KEY = 'local-test-only';
+  delete process.env.ANTHROPIC_API_KEY;
+  delete process.env.ANTHROPIC_TEXT_MODEL;
+  if (providerReady) process.env.OPENROUTER_API_KEY = 'sk-or-v1-local-test-only';
   else delete process.env.OPENROUTER_API_KEY;
   t.after(() => {
-    if (old.passcode === undefined) delete process.env.APP_PASSCODE; else process.env.APP_PASSCODE = old.passcode;
-    if (old.key === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = old.key;
+    for (const [key, value] of old) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
   });
   const login = await call(translate, { action: 'login', passcode: code });
   assert.equal(login.status, 200);
@@ -138,6 +142,50 @@ test('the new coach uses the existing session and reports the cost of both gener
   assert.equal(response.data.jyutping.split(' ')[0], 'nei5');
   assert.equal(response.data.cost, 0.02);
   assert.equal(network.mock.callCount(), 2);
+});
+
+test('a direct Claude key enables custom lessons and stays off the audio endpoint', async t => {
+  const cookie = await withServer(t);
+  const key = 'sk-ant-api03-local-test-only';
+  process.env.ANTHROPIC_API_KEY = key;
+  const lesson = starterLesson(starterPhrases[0]).cantonese[0];
+  const network = t.mock.method(globalThis, 'fetch', async (url, init) => {
+    assert.equal(url, 'https://api.anthropic.com/v1/messages');
+    assert.equal(init.headers.Authorization, `Bearer ${key}`);
+    assert.equal(init.headers['anthropic-version'], '2026-10-21');
+    const body = JSON.parse(init.body);
+    assert.equal(body.model, 'claude-sonnet-5-5');
+    assert.match(body.system, /Cantonese speaking coach/);
+    assert.match(body.messages[0].content, /My parents/);
+    return Response.json({ content: [{ type: 'thinking', thinking: 'internal' }, { type: 'text', text: JSON.stringify(lesson) }] });
+  });
+  const status = await call(translate, {}, cookie, 'GET');
+  assert.equal(status.data.providerReady, true);
+  assert.equal(status.data.audioReady, false);
+  const result = await call(translate, { action: 'coach', text: 'Have you eaten?', listener: 'My parents' }, cookie);
+  assert.equal(result.status, 200);
+  assert.equal(result.data.source, 'anthropic');
+  assert.equal(result.data.hanzi, lesson.hanzi);
+  assert.equal(result.data.cost, null);
+  assert.equal((await call(speak, { text: lesson.hanzi, language: 'cantonese' }, cookie)).status, 503);
+  assert.equal(network.mock.callCount(), 1);
+});
+
+test('an OpenRouter key under the Anthropic name is sent only to OpenRouter', async t => {
+  const cookie = await withServer(t);
+  const key = 'sk-or-v1-alias-test-only';
+  process.env.ANTHROPIC_API_KEY = key;
+  const lesson = starterLesson(starterPhrases[0]).cantonese[0];
+  t.mock.method(globalThis, 'fetch', async (url, init) => {
+    assert.equal(url, 'https://openrouter.ai/api/v1/chat/completions');
+    assert.equal(init.headers.Authorization, `Bearer ${key}`);
+    return Response.json({ choices: [{ message: { content: JSON.stringify(lesson) } }] });
+  });
+  const status = await call(translate, {}, cookie, 'GET');
+  assert.equal(status.data.audioReady, true);
+  const result = await call(translate, { action: 'coach', text: 'Have you eaten?' }, cookie);
+  assert.equal(result.status, 200);
+  assert.equal(result.data.source, 'openrouter');
 });
 
 test('audio endpoint reconstructs SSE fragments and sends sized, playable PCM WAV', async t => {

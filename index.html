@@ -222,7 +222,7 @@ function phraseHistory() {
 }
 
 let state = {
-  authenticated: false, providerReady: false, demo: false, connecting: true,
+  authenticated: false, providerReady: false, audioReady: false, demo: false, connecting: true,
   listener: store.get('listener', 'My parents'),
   about: store.get('about', ''),
   history: phraseHistory(),
@@ -244,7 +244,7 @@ async function speak(text, slow, btn) {
   try {
     if (current) current.pause();
     if (window.speechSynthesis) speechSynthesis.cancel();
-    if (!state.authenticated || !state.providerReady) {
+    if (!state.authenticated || !state.audioReady) {
       const voice = localVoice();
       if (!voice) throw new Error('Install a Cantonese voice on your device.');
       const line = new SpeechSynthesisUtterance(text);
@@ -319,6 +319,7 @@ function render() {
         const status = await post({ action: 'login', passcode: $('#code').value.trim() });
         state.authenticated = status.authenticated;
         state.providerReady = status.providerReady;
+        state.audioReady = status.audioReady;
         state.error = '';
       } catch (e) { state.error = e.message; }
       render();
@@ -793,6 +794,7 @@ async function initialize() {
     const status = await response.json();
     state.authenticated = status.authenticated;
     state.providerReady = status.providerReady;
+    state.audioReady = status.audioReady;
   } catch { state.error = 'Could not reach the coach. Try refreshing the page.'; }
   finally { state.connecting = false; render(); }
 }
