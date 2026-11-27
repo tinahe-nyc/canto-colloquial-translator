@@ -17,14 +17,13 @@ function call(handler, data, cookie = '', method = 'POST') {
 }
 
 async function withServer(t, providerReady = false) {
-  const envKeys = ['APP_PASSCODE', 'OPENROUTER_API_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_TEXT_MODEL'];
+  const envKeys = ['APP_PASSCODE', 'OPENROUTER_API_KEY', 'ANTHROPIC_API_KEY', 'ANTHROPIC_TEXT_MODEL',
+    'OPEN_AI_KEY', 'OPENAI_API_KEY', 'OPENAI_TEXT_MODEL'];
   const old = envKeys.map(key => [key, process.env[key]]);
   const code = randomUUID();
   process.env.APP_PASSCODE = code;
-  delete process.env.ANTHROPIC_API_KEY;
-  delete process.env.ANTHROPIC_TEXT_MODEL;
+  for (const key of envKeys.slice(1)) delete process.env[key];
   if (providerReady) process.env.OPENROUTER_API_KEY = 'sk-or-v1-local-test-only';
-  else delete process.env.OPENROUTER_API_KEY;
   t.after(() => {
     for (const [key, value] of old) {
       if (value === undefined) delete process.env[key]; else process.env[key] = value;
@@ -141,6 +140,39 @@ test('the new coach uses the existing session and reports the cost of both gener
   assert.equal(response.data.lang, 'yue');
   assert.equal(response.data.jyutping.split(' ')[0], 'nei5');
   assert.equal(response.data.cost, 0.02);
+  assert.equal(network.mock.callCount(), 2);
+});
+
+test('OPEN_AI_KEY takes priority for translations and quota errors stay on OpenAI', async t => {
+  const cookie = await withServer(t, true);
+  const key = 'sk-proj-local-test-only';
+  process.env.OPEN_AI_KEY = key;
+  process.env.ANTHROPIC_API_KEY = 'sk-ant-api03-local-test-only';
+  const lesson = starterLesson(starterPhrases[0]).cantonese[0];
+  let quotaExhausted = false;
+  const network = t.mock.method(globalThis, 'fetch', async (url, init) => {
+    assert.equal(url, 'https://api.openai.com/v1/responses');
+    assert.equal(init.headers.Authorization, `Bearer ${key}`);
+    const body = JSON.parse(init.body);
+    assert.equal(body.model, 'gpt-6-luna');
+    assert.equal(body.store, false);
+    assert.match(body.instructions, /Cantonese speaking coach/);
+    assert.match(body.input[0].content, /My parents/);
+    if (quotaExhausted) return Response.json({ error: { code: 'insufficient_quota' } }, { status: 429 });
+    return Response.json({ status: 'completed', output: [
+      { type: 'reasoning', summary: [] },
+      { type: 'message', content: [{ type: 'output_text', text: JSON.stringify(lesson) }] },
+    ] });
+  });
+  const input = { action: 'coach', text: 'Have you eaten?', listener: 'My parents' };
+  const result = await call(translate, input, cookie);
+  assert.equal(result.status, 200);
+  assert.equal(result.data.source, 'openai');
+  assert.equal(result.data.hanzi, lesson.hanzi);
+  quotaExhausted = true;
+  const error = await call(translate, input, cookie);
+  assert.equal(error.status, 503);
+  assert.match(error.data.error, /OpenAI API credits/);
   assert.equal(network.mock.callCount(), 2);
 });
 
