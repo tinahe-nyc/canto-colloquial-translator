@@ -1,6 +1,6 @@
 # Kapok Club
 
-[Open the speaking coach](https://canto-colloquial-translator.vercel.app). On iPhone, open the link in Safari, tap **Share → Add to Home Screen**, then **Add**. This is a web app, not an App Store listing. A network connection is needed to fetch lessons.
+[Open the speaking coach](https://kapok-club.vercel.app). On iPhone, open the link in Safari, tap **Share → Add to Home Screen**, then **Add**. This is a web app, not an App Store listing. A network connection is needed to fetch lessons.
 
 A public speaking coach for everyday Cantonese. Try a starter phrase, then read the Jyutping out loud. Each lesson includes a literal translation, tappable words, notes and a speaking tip. Sign in with a friends passcode to translate your own English for the listener you choose.
 
