@@ -28,7 +28,7 @@ Open http://127.0.0.1:3000. Guests can use the three starter lessons, guides, ph
 
 ## Practice and privacy
 
-Your phrasebook and flashcard progress stay in this browser profile. Clearing its site data removes them. Each lesson is saved locally. The coach can read saved Kapok Club phrases on the same browser. Review schedules start fresh in the new flashcards. For AI lessons, the server sends the requested phrase, listener, and any context you enter to the configured provider. Generated audio sends the chosen Chinese script to OpenRouter. A device or browser's speech recognition may use its own speech service.
+Translations are saved in your phrasebook on this browser. Use **Add to flashcards** on the main line or any alternate you want to practice. Tap **In flashcards** to remove a line from review. Your phrasebook, selected cards, and review progress belong to this browser profile and site address. Clearing site data removes them. For AI lessons, the server sends the requested phrase, listener, and any context you enter to the configured provider. Generated audio sends the chosen Chinese script to OpenRouter. A device or browser's speech recognition may use its own speech service.
 
 Friends use a shared passcode and a signed session cookie. Set a spending limit on the OpenRouter key when enabling it. The server's request limits apply per instance.
 

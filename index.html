@@ -72,6 +72,9 @@
   .play { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 4px; }
   .play button { font-size: 18px; background: var(--mint); border: var(--line); border-radius: var(--wob2); padding: 3px 11px; box-shadow: -4px 3px 0 var(--mint-soft); }
   .play button:disabled { opacity: .7; }
+  .play .save-card { background: var(--card); color: var(--ink); box-shadow: none; }
+  .play .save-card[aria-pressed=true] { background: var(--tan); color: #1d1b19; }
+  .play .save-error { flex-basis: 100%; margin: 0; }
   h3 { font-size: 24px; margin: 24px 0 10px; display: flex; align-items: center; gap: 8px; }
   h3 svg { width: 44px; height: 44px; }
   h3 .hint { font-family: Nunito, sans-serif; font-size: 13px; margin: 0; }
@@ -163,7 +166,7 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const store = {
   get(k, d) { try { const v = localStorage.getItem('canto:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('canto:' + k, JSON.stringify(v)); } catch {} },
+  set(k, v) { try { localStorage.setItem('canto:' + k, JSON.stringify(v)); return true; } catch { return false; } },
 };
 
 // ---------- Doodles (hand-drawn style: pastel fill printed a little off, wobbly ink on top) ----------
@@ -235,6 +238,9 @@ try { localStorage.removeItem('canto:code'); } catch {}
 // Keep older entries intact and show the Cantonese line from previously paired lessons.
 const isCantoneseEntry = (entry) => entry?.result && (entry.result.lang ?? 'yue') === 'yue';
 const myHistory = () => state.history.map((h, i) => ({ h, i })).filter(({ h }) => isCantoneseEntry(h));
+const alternateVersions = (result) => Array.isArray(result.alts) ? result.alts : result.alt ? [result.alt] : [];
+// Entries from the automatic deck used their main line as a card.
+const savedFlashcards = (entry) => Array.isArray(entry.flashcards) ? entry.flashcards : [entry.result.hanzi];
 
 const audioCache = new Map();
 let current;
@@ -369,7 +375,7 @@ function render() {
       </div>
       <ul class="hist">${myHistory().map(({ h, i }) => `
         <li data-i="${i}"><div><div class="zh">${esc(h.result.hanzi)}</div><div class="en">${esc(h.input)} · ${esc(h.listener)}</div></div>
-        <button class="x" data-del="${i}" title="Remove">×</button></li>`).join('')}
+        <button class="x" data-del="${i}" title="Remove phrasebook entry">×</button></li>`).join('')}
       </ul>
     </div>` : ''}
   `;
@@ -392,6 +398,7 @@ function render() {
     if (e.target.dataset.del != null) {
       const gone = state.history[+e.target.dataset.del];
       state.history = state.history.filter((h) => h !== gone);
+      if (state.result === gone.result) state.result = null;
       store.set('history', state.history); render(); return;
     }
     const h = state.history[+li.dataset.i];
@@ -418,17 +425,26 @@ function notesHTML(notes) {
       <p>${esc(n.note)}</p>
     </div>`).join('')}</div>`;
 }
-const playRow = (text) => `<div class="play">
-  <button data-say="${esc(text)}">▶ Hear it</button>
-  <button data-say="${esc(text)}" data-slow="1">▶ Nice and slow</button>
-  ${PAUSE}
-</div>`;
+const flashcardLabel = (selected) => selected ? '✓ In flashcards' : 'Add to flashcards';
+
+function playRow(line, entry) {
+  const text = esc(line.trad || line.hanzi);
+  const selected = entry ? savedFlashcards(entry).includes(line.hanzi) : false;
+  return `<div class="play">
+    <button data-say="${text}">▶ Hear it</button>
+    <button data-say="${text}" data-slow="1">▶ Nice and slow</button>
+    ${PAUSE}
+    ${entry ? `<button type="button" class="save-card" data-flashcard="${esc(line.hanzi)}" aria-pressed="${selected}">${flashcardLabel(selected)}</button>
+      <span class="err save-error" role="alert" hidden></span>` : ''}
+  </div>`;
+}
 
 function resultHTML(r) {
   if (!r) return '';
   const pop = state.fresh ? 'result' : '';
   state.fresh = false;
-  const alts = r.alts || (r.alt ? [r.alt] : null);
+  const alts = alternateVersions(r);
+  const entry = state.history.find((h) => h.result === r);
   return `<div class="card ${pop}">
       ${r.source === 'starter' ? '<p class="hint">Built-in sample lesson</p>' : ''}
       <div class="bubble">
@@ -436,21 +452,21 @@ function resultHTML(r) {
         <div class="jp">${esc(r.jyutping)}</div>
       </div>
       <div class="back">“${esc(r.back)}”</div>
-      ${playRow(r.trad || r.hanzi)}
+      ${playRow(r, entry)}
 
       <h3>${D.frog()} Word by word <span class="hint">tap one to hear it</span></h3>
       ${wordsHTML(r.words)}
 
       ${(r.notes || []).length ? `<h3>${D.cat()} Why it's said this way</h3>${notesHTML(r.notes)}` : ''}
 
-      ${alts && alts.length ? `<h3>${D.blob()} Other ways to say it</h3>${alts.map((a) => `
+      ${alts.length ? `<h3>${D.blob()} Other ways to say it</h3>${alts.map((a) => `
         <div class="alt">
           <div class="altlabel">${esc(a.label || 'Another way')}</div>
           <p class="line">${esc(a.hanzi)}</p>
           <div class="jp">${esc(a.jyutping)}</div>
           ${a.back ? `<div class="back" style="margin-top:6px">“${esc(a.back)}”</div>` : ''}
           <div class="hint">${esc(a.why)}</div>
-          ${playRow(a.trad || a.hanzi)}
+          ${playRow(a, entry)}
           ${(a.words || []).length || (a.notes || []).length ? `<details class="breakdown"><summary>See the breakdown: words and choices</summary>
             ${(a.words || []).length ? `<div class="sublabel">Word by word</div>${wordsHTML(a.words)}` : ''}
             ${(a.notes || []).length ? `<div class="sublabel">What's different and why</div>${notesHTML(a.notes)}` : ''}
@@ -493,10 +509,38 @@ async function loadAlts(r) {
   }
 }
 
+function toggleFlashcard(entry, hanzi) {
+  const saved = savedFlashcards(entry);
+  const next = saved.includes(hanzi) ? saved.filter((line) => line !== hanzi) : [...saved, hanzi];
+  const history = state.history.map((item) => item === entry ? { ...entry, flashcards: next } : item);
+  if (!store.set('history', history)) return false;
+  entry.flashcards = next;
+  return true;
+}
+
 function wireResult(root) {
   root.querySelectorAll('[data-say]').forEach((el) => el.onclick = () => speak(el.dataset.say, !!el.dataset.slow, el.tagName === 'BUTTON' ? el : null));
   const alternatives = root.querySelector('#show-alternatives');
   if (alternatives) alternatives.onclick = () => loadAlts(state.result);
+  const entry = state.history.find((h) => h.result === state.result);
+  if (!entry) return;
+  const saves = root.querySelectorAll('[data-flashcard]');
+  saves.forEach((button) => button.onclick = () => {
+    const hanzi = button.dataset.flashcard;
+    const error = button.parentElement.querySelector('.save-error');
+    if (!toggleFlashcard(entry, hanzi)) {
+      error.textContent = 'This browser could not update your flashcards.';
+      error.hidden = false;
+      return;
+    }
+    error.hidden = true;
+    const selected = savedFlashcards(entry).includes(hanzi);
+    saves.forEach((control) => {
+      if (control.dataset.flashcard !== hanzi) return;
+      control.setAttribute('aria-pressed', String(selected));
+      control.textContent = flashcardLabel(selected);
+    });
+  });
 }
 
 async function translate(starter = false) {
@@ -513,9 +557,9 @@ async function translate(starter = false) {
   try {
     const result = await api(base, starter);
     state.result = result; state.fresh = true;
-    state.history.unshift({ input: text, listener: base.listener, level: base.level, result, ts: Date.now() });
+    state.history.unshift({ input: text, listener: base.listener, level: base.level, result, ts: Date.now(), flashcards: [] });
     let cantoneseCount = 0;
-    state.history = state.history.filter((entry) => !isCantoneseEntry(entry) || ++cantoneseCount <= 200);
+    state.history = state.history.filter((entry) => !isCantoneseEntry(entry) || ++cantoneseCount <= 200 || savedFlashcards(entry).length > 0);
     store.set('history', state.history);
   } catch (e) {
     state.error = e.message;
@@ -539,8 +583,7 @@ function listen() {
 
 
 // ---------- Flashcards ----------
-// Cards come from the phrasebook: whole lines, or the words inside them. Progress is a simple
-// Leitner box per card and mode, saved on this phone: "Got it" moves a card up a box (seen less often), "Again" back to the start.
+// Study uses selected lines and the words in those lines. Each review mode keeps its own schedule.
 const DAYS = [0, 1, 3, 7, 16, 35];
 const DAY = 864e5;
 let progress = store.get('srs', {});
@@ -548,16 +591,23 @@ let progress = store.get('srs', {});
 function cards() {
   const seen = new Set(), out = [];
   for (const { h } of myHistory()) {
-    const r = h.result;
-    if (state.deck === 'lines') {
-      if (seen.has(r.hanzi)) continue;
-      seen.add(r.hanzi);
-      out.push({ id: 'l:' + r.hanzi, hanzi: r.hanzi, say: r.trad || r.hanzi, jyutping: r.jyutping, en: h.input, sub: 'To: ' + h.listener, back: r.back });
-    } else {
-      for (const w of r.words || []) {
-        if (!/[㐀-鿿]/.test(w.hanzi) || seen.has(w.hanzi)) continue;
-        seen.add(w.hanzi);
-        out.push({ id: 'w:' + w.hanzi, hanzi: w.hanzi, say: w.trad || w.hanzi, jyutping: w.jyutping, en: w.meaning, sub: 'From: ' + r.hanzi, back: '' });
+    const saved = savedFlashcards(h);
+    if (!saved.length) continue;
+    const versions = [h.result, ...alternateVersions(h.result)];
+    for (const [index, line] of versions.entries()) {
+      if (!saved.includes(line.hanzi)) continue;
+      if (state.deck === 'lines') {
+        if (seen.has(line.hanzi)) continue;
+        seen.add(line.hanzi);
+        const alternate = index ? ' · ' + (line.label || 'Another way') : '';
+        out.push({ id: 'l:' + line.hanzi, hanzi: line.hanzi, say: line.trad || line.hanzi, jyutping: line.jyutping,
+          en: (index && line.back) || h.input, sub: 'To: ' + h.listener + alternate });
+      } else {
+        for (const w of line.words || []) {
+          if (!/[㐀-鿿]/.test(w.hanzi) || seen.has(w.hanzi)) continue;
+          seen.add(w.hanzi);
+          out.push({ id: 'w:' + w.hanzi, hanzi: w.hanzi, say: w.trad || w.hanzi, jyutping: w.jyutping, en: w.meaning, sub: 'From: ' + line.hanzi });
+        }
       }
     }
   }
@@ -594,10 +644,10 @@ function renderPractice(app) {
   app.innerHTML = `
     <div class="row" style="margin:0 0 8px"><button class="ghost" id="back">← Back</button></div>
     <div class="hero">${D.frog(state.cheer ? 'yay' : '')}<div><h1>Practice <span>time</span></h1>
-    <p class="sub">${doneToday() ? `<span class="streak">${doneToday()} done today</span> ` : ''}${dueCount} to practice · ${all.length} ${state.deck === 'lines' ? (all.length === 1 ? 'sentence' : 'sentences') : (all.length === 1 ? 'word' : 'words')} in your phrasebook</p></div></div>
+    <p class="sub">${doneToday() ? `<span class="streak">${doneToday()} done today</span> ` : ''}${dueCount} to practice · ${all.length} ${state.deck === 'lines' ? (all.length === 1 ? 'sentence' : 'sentences') : (all.length === 1 ? 'word' : 'words')} in your flashcards</p></div></div>
     <div class="chips">${tog('deck', 'lines', 'Sentences')}${tog('deck', 'words', 'Words')}</div>
     <div class="chips">${tog('mode', 'say', 'Say it (English → Cantonese)')}${tog('mode', 'listen', 'Listen (Cantonese → English)')}</div>
-    ${!all.length ? `<div class="card">Nothing here yet. Translate a few things first, and they'll show up as cards.</div>`
+    ${!all.length ? `<div class="card">Open a lesson and choose <b>Add to flashcards</b> on any version you want to review.</div>`
     : !c ? `<div class="card flash">${D.mug('mascot')}<p class="prompt">All caught up! Tea break.</p>
         <p class="hint">Cards come back when they're due. You can keep going anyway.</p>
         <div class="row"><button class="main" id="anyway">Keep practicing</button></div></div>`
